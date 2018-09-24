@@ -1,0 +1,5 @@
+---
+
+osp_instance_volumes: []
+osp_instance_security_groups: []
+osp_instance_auto_ip: no

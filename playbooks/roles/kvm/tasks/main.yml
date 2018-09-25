@@ -1,0 +1,376 @@
+---
+# tasks file for roles/kvm
+- name: disable UseDNS in the /etc/ssh/sshd_config file
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^UseDNS"
+    line: "UseDNS no"
+    insertafter: EOF
+    state: present
+  register: ssh_config
+
+- name: reload ssh
+  service:
+    name: sshd
+    state: reloaded
+  when: ssh_config.changed
+
+- name: add a temporary nameserver to /etc/resolv.conf file
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver {{ dns_server_public }}"
+    insertafter: "BOF"
+    state: present
+  when: use_public_dns
+
+- name: enable SELinux
+  selinux:
+    policy: targeted
+    state: enforcing
+
+- name: turn off requiretty for sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: "{{ item.line }}"
+    state: "{{ item.state }}"
+  with_items:
+     - { line: "Defaults !requiretty", state: present }
+     - { line: "Defaults requiretty", state: absent }
+
+- name: check sudoers
+  shell: cat /etc/sudoers | grep tty
+  register: sudoers_output
+
+- name: set hostname
+  hostname:
+    name: "{{ rhel_kvm.hostname_full }}"
+
+- name: remove any repo files
+  shell: rm -rf /etc/yum.repos.d/*.repo
+
+- name: enable the needed rhel repositories
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
+  with_items:
+    - "{{ rhel_kvm.repos }}"
+  when: not register_rhn
+
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - "{{ rhel_kvm.repos }}"
+  when: register_rhn
+
+- name: check if virtualization extensions exist
+  command: grep -E 'svm|vmx' /proc/cpuinfo
+  register: virt_check
+  failed_when: false
+
+- name: clean yum cache
+  command: yum clean all
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: install several useful utility and kvm packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ rhel_kvm.packages }}"
+
+- name: copying kvm.conf file
+  copy:
+    src: files/kvm.conf
+    dest: /etc/modprobe.d/kvm.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Stop libvirtd since it has a mount on a partition on the second disk
+  service:
+    name: libvirtd
+    enabled: yes
+    state: stopped
+
+- name: unmount libvirt images
+  mount:
+    path: /var/lib/libvirt/images
+    state: unmounted
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: unmount Red Hat Content storage
+  mount:
+    path: /content
+    state: unmounted
+  when: rhel_kvm.disks.content is defined
+
+- name: "read {{ rhel_kvm.disks.libvirt_images }} device information (always use unit when probing)"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    unit: MiB
+  register: libvirt_images_info
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "remove all partitions from {{ rhel_kvm.disks.libvirt_images }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+   - "{{ libvirt_images_info.partitions }}"
+  ignore_errors: true
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    number: 1
+    state: present
+    label: gpt
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
+
+- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    number: 1
+    state: present
+    label: gpt
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
+
+- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
+
+- name: "read {{ rhel_kvm.disks.content }} device information (always use unit when probing)"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.content }}"
+    unit: MiB
+    label: gpt
+  register: content_info
+  when: rhel_kvm.disks.content is defined
+
+- name: "remove all partitions from {{ rhel_kvm.disks.content }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.content }}"
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+   - "{{ content_info.partitions }}"
+  ignore_errors: true
+  when: rhel_kvm.disks.content is defined
+
+- name: "create 1 primary partition on {{ rhel_kvm.disks.content }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.content }}"
+    number: 1
+    state: present
+    label: gpt
+  when: rhel_kvm.disks.content is defined
+
+- name: "format {{ rhel_kvm.disks.content }}1 xfs"
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ rhel_kvm.disks.content }}1"
+    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+  when:
+    - rhel_kvm.disks.content is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
+
+- name: "mount {{ rhel_kvm.disks.libvirt_images }}1 for libvirt images"
+  mount:
+    path: /var/lib/libvirt/images
+    src: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+    fstype: xfs
+    opts: defaults
+    state: mounted
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "mount {{ rhel_kvm.disks.content }}1 for Red Hat Content storage"
+  mount:
+    path: /content
+    src: "/dev/{{ rhel_kvm.disks.content }}1"
+    fstype: xfs
+    opts: defaults
+    state: mounted
+  when: rhel_kvm.disks.content is defined
+
+- name: starting libvirtd back up
+  service:
+    name: libvirtd
+    enabled: yes
+    state: started
+
+- name: generate ssh key for use across systems
+  user:
+    name: root
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: /root/.ssh/id_rsa
+
+- name: copy over ssh config
+  copy:
+    src: files/ssh_config
+    dest: /root/.ssh/config
+
+- name: fetch public key from KVM host
+  fetch:
+    src: /root/.ssh/id_rsa.pub
+    dest: files/kvm_root_id_rsa.pub
+    flat: yes
+
+- name: copy over the rhel guest image for later virtual disk images
+  copy:
+    src: "/usr/share/rhel-guest-image-7/rhel-guest-image-7.2-20160302.0.x86_64.qcow2"
+    dest: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
+    remote_src: true
+
+- name: remove cloud-init and set root password on base rhel 7 guest image
+  command: "virt-customize -a /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat --run-command 'yum remove cloud-init* -y'"
+
+- name: Install Shade
+  tags: shade
+  when: (disconnected is not defined) or (disconnected is defined and disconnected.pip is not defined)
+  block:
+    - name: install the epel rpm from a remote repo
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+
+    #- name: install ansible and other packages
+    #  yum:
+    #    name: '{{ item }}'
+    #    state: latest
+    #  with_items:
+    #    - python-pip
+
+    - name: make sure pip is latest
+      pip:
+        name: pip
+        state: latest
+
+    - name: make sure setuptools is latest
+      pip:
+        name: setuptools
+        state: latest
+
+- name: install shade connected
+  tags: shade
+  pip:
+    name: shade
+    version: 1.27.1
+    extra_args: "-Iv"
+  when: (disconnected is not defined) or (disconnected is defined and disconnected.shade is not defined)
+
+- name: Install pip, shade and openstacksdk disconnected
+  tags: shade
+  when: disconnected is defined
+  block:
+    - name: create virtualenv in hattrick repo
+      shell: virtualenv /root/hattrick
+
+#    - name: Disconnected pip installation
+#      shell: |
+#        cp "{{ disconnected.pip.source }}" /tmp/pip.tar.gz
+#        tar zxvf /tmp/pip.tar.gz -C /tmp
+#        python /tmp/pip/get-pip.py --no-index --find-links=/tmp/pip
+#      when: disconnected.pip is defined
+
+    - name: Disconnected openstacksdk installation
+      shell: |
+        source /root/hattrick/bin/activate
+        cp "{{ disconnected.openstacksdk.source }}" /tmp/openstacksdk.tar.gz
+        tar zxvf /tmp/openstacksdk.tar.gz -C /tmp
+        pip install openstacksdk --no-index --find-links=/tmp/openstacksdk
+      when: disconnected.openstacksdk is defined
+
+    - name: Disconnected shade installation
+      shell: |
+        source /root/hattrick/bin/activate
+        cp "{{ disconnected.shade.source }}" /tmp/shade.tar.gz
+        tar zxvf /tmp/shade.tar.gz -C /tmp
+        pip install shade --no-index --find-links=/tmp/shade
+      when: disconnected.shade is defined
+
+- name: copy over ansible.cfg
+  copy:
+    src: files/.ansible.cfg
+    dest: /root/.ansible.cfg
+
+- name: remove temporary nameserver from /etc/resolv.conf file
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver {{ dns_server_public }}"
+    state: absent
+
+- name: copy chrony.conf script for disconnected ntp master
+  template:
+    src: "templates/chrony.conf.j2"
+    dest: /etc/chrony.conf
+  when: disconnected is defined
+
+- name: restarting chronyd service
+  service:
+    name: chronyd
+    state: restarted
+    enabled: yes
+  when: disconnected is defined
+
+- name: add NTP to firewalld
+  firewalld:
+    service: ntpd
+    permanent: true
+    state: enabled
+    immediate: yes
+
+#TODO: removing for now. fix kernel check later
+#- name: restart server to get updated kernel
+#  shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
+#  async: 1
+#  poll: 0
+#  ignore_errors: true
+#  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+#- name: waiting for server to come back
+#  wait_for:
+#    host: "{{ inventory_hostname }}"
+#    state: started
+#    delay: 10
+#    connect_timeout: 5
+#    timeout: 300
+#    port: 22
+#  delegate_to: 127.0.0.1
+#  become: false
+#  ignore_errors: true

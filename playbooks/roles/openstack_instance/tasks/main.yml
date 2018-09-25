@@ -1,0 +1,50 @@
+---
+
+- name: Create volume(s)
+  os_volume:
+    display_name: "{{ os_instance_name }}-{{ item.name }}"
+    size: "{{ item.size }}"
+    state: present
+    auth: "{{ os_auth | default(omit) }}"
+  loop: "{{ os_instance_volumes }}"
+  register: os_instance_create_volumes
+
+- name: Create security group(s)
+  os_security_group:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(omit) }}"
+    state: present
+    auth: "{{ os_auth | default(omit) }}"
+  loop: "{{ os_instance_security_groups }}"
+  register: os_instance_create_security_groups
+
+- name: Create security group rule(s)
+  os_security_group_rule:
+    security_group: "{{ item.0.name }}"
+    direction: "{{ item.1.direction | default(omit) }}"
+    ethertype: "{{ item.1.ethertype | default(omit) }}"
+    interface: "{{ item.1.interface | default(omit) }}"
+    port_range_max: "{{ item.1.port_range_max | default(omit) }}"
+    port_range_min: "{{ item.1.port_range_min | default(omit) }}"
+    protocol: "{{ item.1.protocol | default(omit) }}"
+    remote_group: "{{ item.1.remote_group | default(omit) }}"
+    remote_ip_prefix: "{{ item.1.remote_ip_prefix | default(omit) }}"
+    state: "{{ item.1.state | default('present') }}"
+    auth: "{{ os_auth | default(omit) }}"
+  loop: "{{ query('subelements', os_instance_security_groups, 'rules') }}"
+  register: os_instance_create_security_group_rules
+
+- name: Launch instance
+  os_server:
+    name: "{{ os_instance_name }}"
+    image: "{{ os_instance_image }}"
+    flavor: "{{ os_instance_flavor }}"
+    key_name: "{{ os_instance_key_name }}"
+    security_groups: "{{ os_instance_security_groups | map(attribute='name') | list }}"
+    volumes: "{{ os_instance_create_volumes.results | map(attribute='volume.id') | list }}"
+    network: "{{ os_instance_network }}"
+    auto_ip: "{{ os_instance_auto_ip | default('yes') }}"
+    timeout: "{{ os_instance_timeout | default(300) }}"
+    state: present
+    auth: "{{ os_auth | default(omit) }}"
+  register: os_instance_launch_instance

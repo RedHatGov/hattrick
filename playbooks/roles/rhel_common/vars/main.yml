@@ -1,0 +1,6 @@
+---
+# vars file for roles/rhel-common
+rhel_common.register_rhn: true
+rhn_user: "{{ vault_rhn_user }}"
+rhn_pwd: "{{ vault_rhn_pwd }}"
+rhn_pool_name: "{{ vault_rhn_pool_name }}"

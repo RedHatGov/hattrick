@@ -1,0 +1,68 @@
+---
+- name: Play to provision admin host
+  hosts: localhost
+  gather_facts: no
+  vars:
+    admin_ip: 192.168.0.3
+  roles:
+    #NOTE:  handled by kickstart usb or pxe
+    #       see admin-iso folder for README
+    #- roles/povision_admin_baremetal
+    - host_facts_admin
+
+- name: Play to copy local pub key to admin host
+  hosts: admin
+  gather_facts: no
+  remote_user: root
+  vars:
+    ansible_ssh_user: root
+    ansible_ssh_pass: redhat
+  roles:
+    - copy_local_pub_key
+
+- name: Play to deploy admin host
+  hosts: admin
+  remote_user: root
+  vars:
+    use_public_dns: true
+    domain: two.hattrick.lab
+    dns_server_local: 192.168.0.6
+    dns_server_public: 8.8.8.8
+    git_repo: https://github.com/redhat-kejones/ht
+
+    rhel_kvm:
+      hostname_full: kvm.{{ domain }}
+      disks:
+        root: sda
+        #libvirt_images: sdb
+        #content: sdc
+      repos:
+        - rhel-7-server-rpms
+        - rhel-7-server-extras-rpms
+        - rhel-7-server-rh-common-rpms
+      packages:
+        - 'screen'
+        - 'wget'
+        - 'vim'
+        - 'tree'
+        - 'yum-utils'
+        - 'git'
+        - 'qemu-kvm'
+        - 'qemu-img'
+        - 'libvirt'
+        - 'virt-install'
+        - 'libvirt-client'
+        - 'libvirt-python'
+        - 'libguestfs-tools-c'
+        - 'rhel-guest-image-7'
+        - 'ansible'
+
+    register_rhn: true
+    rhsm_username: bebop
+    rhsm_password: bebop
+    rhsm_pool: ...
+    rhsm_repos: "{{ rhel_kvm.repos }}"
+  roles:
+    - rhsm_unsubscribe
+    - rhsm_subscribe
+    - kvm_deploy

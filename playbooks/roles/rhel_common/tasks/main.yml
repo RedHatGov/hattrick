@@ -1,0 +1,73 @@
+---
+# tasks file for roles/rhel_common
+- name: disable UseDNS in the /etc/ssh/sshd_config file
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^UseDNS"
+    line: "UseDNS no"
+    insertafter: EOF
+    state: present
+  register: ssh_config
+
+- name: reload ssh
+  service:
+    name: sshd
+    state: reloaded
+  when: ssh_config.changed
+
+- name: add a temporary nameserver to /etc/resolv.conf file
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver {{ dns_server_public }}"
+    insertafter: "BOF"
+    state: present
+  when: use_public_dns
+
+- name: enable SELinux
+  selinux:
+    policy: targeted
+    state: enforcing
+
+- name: unregister System with RHN Subscription Manager
+  redhat_subscription:
+    state: absent
+  when: ansible_distribution == 'RedHat'
+
+- name: subscription-manager clean all
+  command: subscription-manager clean
+  when: ansible_distribution == 'RedHat'
+
+- name: register System with RHN Subscription Manager
+  redhat_subscription:
+    state: present
+    username: "{{ rhn_user }}"
+    password: "{{ rhn_pwd }}"
+    pool: "{{ rhn_pool_name }}"
+  when: ansible_distribution == 'RedHat' and register_rhn
+
+- name: disable all repositories
+  command: subscription-manager repos --disable=\*
+  when: ansible_distribution == 'RedHat' and register_rhn
+
+#- name: setup local repo file repo server
+#  template:
+#    src: rhn-local.repo.j2
+#    dest: /etc/yum.repos.d/redhat-local.repo
+#  when: not register_rhn
+
+- name: turn off requiretty for sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: "{{ item.line }}"
+    state: "{{ item.state }}"
+  with_items:
+     - { line: "Defaults !requiretty", state: present }
+     - { line: "Defaults requiretty", state: absent }
+
+- name: check sudoers
+  shell: cat /etc/sudoers | grep tty
+  register: sudoers_output
+
+- name: Debug
+  debug:
+    msg: "Sudoers: {{ sudoers_output }}"

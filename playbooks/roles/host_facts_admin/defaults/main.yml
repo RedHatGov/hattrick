@@ -1,0 +1,3 @@
+---
+# defaults file for roles/host_facts_admin
+admin_host_ip: localhost

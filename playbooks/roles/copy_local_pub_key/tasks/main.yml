@@ -1,0 +1,17 @@
+---
+# tasks file for roles/copy_local_pub_key
+- name: Check that target is online
+  wait_for:
+    host: "{{ ansible_host }}"
+    state: started
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  ignore_errors: true
+
+- name: Add authorized key from local machine onto target
+  authorized_key:
+    user: "{{ ansible_ssh_user }}"
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

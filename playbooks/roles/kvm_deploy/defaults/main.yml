@@ -1,0 +1,34 @@
+---
+# defaults for all vars
+domain: example.com
+dns_server_local: 192.168.0.4
+dns_server_public: 8.8.8.8
+git_repo: https://github.com/redhat-kejones/ht
+
+# defaults file for roles/kvm_deploy
+rhel_kvm:
+  hostname_full: kvm.{{ domain }}
+  disks:
+    root: sda
+    #libvirt_images: sdb
+    #content: sdc
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+  packages:
+    - 'screen'
+    - 'wget'
+    - 'vim'
+    - 'tree'
+    - 'yum-utils'
+    - 'git'
+    - 'qemu-kvm'
+    - 'qemu-img'
+    - 'libvirt'
+    - 'virt-install'
+    - 'libvirt-client'
+    - 'libvirt-python'
+    - 'libguestfs-tools-c'
+    - 'rhel-guest-image-7'
+    - 'ansible'

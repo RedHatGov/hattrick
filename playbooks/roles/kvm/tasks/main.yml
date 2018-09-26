@@ -40,27 +40,21 @@
   hostname:
     name: "{{ rhel_kvm.hostname_full }}"
 
-- name: remove any repo files
-  shell: rm -rf /etc/yum.repos.d/*.repo
+#- name: remove any repo files
+#  shell: rm -rf /etc/yum.repos.d/*.repo
 
-- name: enable the needed rhel repositories
-  yum_repository:
-    name: "{{ item }}"
-    description: "{{ item }}"
-    baseurl: "{{ local_repo_url }}{{ item }}"
-    gpgcheck: no
-    enabled: yes
-    file: rhn-local
-    state: present
-  with_items:
-    - "{{ rhel_kvm.repos }}"
-  when: not register_rhn
-
-- name: enable the needed rhel repositories
-  command: subscription-manager repos --enable={{ item }}
-  with_items:
-    - "{{ rhel_kvm.repos }}"
-  when: register_rhn
+#- name: enable the needed rhel repositories
+#  yum_repository:
+#    name: "{{ item }}"
+#    description: "{{ item }}"
+  #   baseurl: "{{ local_repo_url }}{{ item }}"
+  #   gpgcheck: no
+  #   enabled: yes
+  #   file: rhn-local
+  #   state: present
+  # with_items:
+  #   - "{{ rhel_kvm.repos }}"
+  # when: not register_rhn
 
 - name: check if virtualization extensions exist
   command: grep -E 'svm|vmx' /proc/cpuinfo
@@ -85,10 +79,8 @@
 
 - name: install several useful utility and kvm packages
   yum:
-    name: "{{ item }}"
+    name: "{{ rhel_kvm.packages }}"
     state: latest
-  with_items:
-    - "{{ rhel_kvm.packages }}"
 
 - name: copying kvm.conf file
   copy:

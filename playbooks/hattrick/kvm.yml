@@ -1,74 +1,16 @@
 ---
-- name: Play to provision kvm host
-  hosts: localhost
-  gather_facts: no
-  vars:
-    kvm_public_ip: 192.168.0.3
-  tasks:
-  - name: Add host facts for kvm
-    add_host:
-      name: "kvm"
-      ansible_host: "{{ kvm_public_ip }}"
-    changed_when: no
-
 - name: Play to copy local pub key to kvm host
   hosts: kvm
   gather_facts: no
-  remote_user: root
-  vars:
-    ansible_ssh_user: root
-    ansible_ssh_pass: redhat
   roles:
     - copy_local_pub_key
 
 - name: Play to deploy kvm host
   hosts: kvm
-  remote_user: root
-  vars:
-    use_public_dns: true
-    domain: int.hattrick1.lab
-    dns_server_local: 192.168.0.6
-    dns_server_public: 8.8.8.8
-    git_repo: https://github.com/redhat-kejones/ht
-
-    rhel_kvm:
-      hostname_full: kvm.{{ domain }}
-      disks:
-        root: sda
-        #libvirt_images: sdb
-      repos:
-        - rhel-7-server-rpms
-        - rhel-7-server-extras-rpms
-        - rhel-7-server-rh-common-rpms
-      packages:
-        - 'screen'
-        - 'wget'
-        - 'vim'
-        - 'tree'
-        - 'yum-utils'
-        - 'git'
-        - 'qemu-kvm'
-        - 'qemu-img'
-        - 'libvirt'
-        - 'virt-install'
-        - 'libvirt-client'
-        - 'libvirt-python'
-        - 'libguestfs-tools-c'
-        - 'rhel-guest-image-7'
-        - 'ansible'
-
-    register_rhn: true
-    rhsm_username: hattrick1
-    rhsm_password: redhat
-    rhsm_pool: 8a85f98a60da5b460160dd04e0a87c7f
-    rhsm_repos: "{{ rhel_kvm.repos }}"
   tasks:
-    - name: Unregister from RHSM first in case we were registered
-      include_role:
-        name: rhsm
-        tasks_from: unregister
-
     - name: Register to RHSM
+      vars:
+        rhsm_repos: "{{ rhel_kvm.repos }}"
       include_role:
         name: rhsm
 

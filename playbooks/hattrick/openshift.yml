@@ -10,16 +10,15 @@
     - name: Refresh inventory to discover OpenShift infrastructure
       meta: refresh_inventory
 
-- hosts: openshift_hosts
+- hosts: openshift_nodes
   tasks:
-    - name: Provision OpenShift infrastructure
+    - name: Prepare OpenShift nodes
       include_role:
         name: openshift
-        tasks_from: prep_hosts
+        tasks_from: prerequisites
 
 - hosts: openshift_master
   tasks:
     - name: Provision OpenShift infrastructure
       include_role:
         name: openshift
-        tasks_from: install_openshift

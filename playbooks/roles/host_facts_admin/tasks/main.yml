@@ -1,7 +1,0 @@
----
-# tasks file for roles/host_facts_admin
-- name: Add host facts for admin
-  add_host:
-    name: "admin"
-    ansible_host: "{{ admin_ip }}"
-  changed_when: no

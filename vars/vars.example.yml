@@ -1,0 +1,15 @@
+---
+
+os_auth:
+  auth_url: http://openstack.example.com:5000
+  username: admin
+  password: p@ssw0rd
+  project_name: myproject
+
+os_auth_openshift:
+  auth_url: "{{ os_auth.auth_url }}"
+  username: "{{ os_auth.username }}"
+  password: "{{ os_auth.password }}"
+  project_name: openshift
+
+openshift_provision: openstack

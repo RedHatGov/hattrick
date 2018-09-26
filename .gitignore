@@ -4,19 +4,13 @@
 
 .vscode/
 .idea/
-*.retry
-*.swp
-vault.yml
-vault
-vars.yml
+
+vars/*
+!vars/vars.example.yml
+
 *id_rsa*
 *.pub
-files/*-ifcfg-eth*
-guest_images/*.qcow2
-bin
-include
-lib
-lib64
+
 
 ###############################################################################
 # Python

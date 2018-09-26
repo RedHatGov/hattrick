@@ -1,0 +1,99 @@
+---
+
+- name: Create OpenShift master instance
+  include_role:
+    name: openstack_instance
+    tasks_from: teardown
+  vars:
+    os_instance_name: master
+    os_instance_image: rhel75
+    os_instance_flavor: ocp1.master
+    os_instance_key_name: jhocutt
+    os_instance_network: private
+    os_instance_auto_ip: yes
+    os_instance_terminate_volume: yes
+    os_instance_volumes:
+      - name: container
+        size: 40
+    os_instance_security_groups:
+      - name: ssh
+        description: Allow SSH
+        rules:
+          - protocol: tcp
+            port_range_min: 22
+            port_range_max: 22
+            remote_ip_prefix: 0.0.0.0/0
+      - name: web
+        rules:
+          - protocol: tcp
+            port_range_min: 443
+            port_range_max: 443
+            remote_ip_prefix: 0.0.0.0/0
+    os_auth: "{{ os_auth_openshift }}"
+
+- name: Create OpenShift infra instance
+  include_role:
+    name: openstack_instance
+    tasks_from: teardown
+  vars:
+    os_instance_name: infra
+    os_instance_image: rhel75
+    os_instance_flavor: ocp1.master
+    os_instance_key_name: jhocutt
+    os_instance_network: private
+    os_instance_auto_ip: yes
+    os_instance_terminate_volume: yes
+    os_instance_volumes:
+      - name: container
+        size: 40
+      - name: gluster
+        size: 50
+    os_instance_security_groups:
+      - name: ssh
+        description: Allow SSH
+        rules:
+          - protocol: tcp
+            port_range_min: 22
+            port_range_max: 22
+            remote_ip_prefix: 0.0.0.0/0
+      - name: web
+        rules:
+          - protocol: tcp
+            port_range_min: 80
+            port_range_max: 80
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 443
+            port_range_max: 443
+            remote_ip_prefix: 0.0.0.0/0
+    os_auth: "{{ os_auth_openshift }}"
+
+- name: Create OpenShift app instance
+  include_role:
+    name: openstack_instance
+    tasks_from: teardown
+  vars:
+    os_instance_name: app{{ '%02x' | format(node_number) }}
+    os_instance_image: rhel75
+    os_instance_flavor: ocp1.node
+    os_instance_key_name: jhocutt
+    os_instance_network: private
+    os_instance_auto_ip: no
+    os_instance_terminate_volume: yes
+    os_instance_volumes:
+      - name: container
+        size: 40
+      - name: gluster
+        size: 50
+    os_instance_security_groups:
+      - name: ssh
+        description: Allow SSH
+        rules:
+          - protocol: tcp
+            port_range_min: 22
+            port_range_max: 22
+            remote_ip_prefix: 0.0.0.0/0
+    os_auth: "{{ os_auth_openshift }}"
+  loop: "{{ range(1, openshift_provision_node_count + 1) | list }}"
+  loop_control:
+    loop_var: node_number

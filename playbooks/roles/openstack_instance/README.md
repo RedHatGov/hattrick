@@ -29,8 +29,9 @@ Role Variables
 | `os_instance_flavor` | :heavy_check_mark: | | The name or id of the flavor in which the new instance has to be created. |
 | `os_instance_key_name` | :heavy_check_mark: | | The key pair name to be used when creating a instance. |
 | `os_instance_network` | :heavy_check_mark: | | Name or ID of a network to attach this instance to. |
-| `os_instance_auto_ip` | :x: | `yes` | Ensure instance has public ip however the cloud wants to do that. |
-| `os_instance_timeout` | :x: | `300` | The amount of time the module should wait for the instance to get into active state. |
+| `os_instance_auto_ip` | :x: | _omit_ | Ensure instance has public ip however the cloud wants to do that. |
+| `os_instance_timeout` | :x: | _omit_ | The amount of time the module should wait for the instance to get into active state. |
+| `os_instance_terminate_volume` | :x: | _omit_ | If `yes`, delete volume when deleting instance (if booted from volume). |
 | `os_instance_volumes` | :x: | `[]` | A list of volumes to create and attach to the instance. Each volume in the list would contain `name` and `size`. |
 | `os_instance_security_groups` | :x: | `[]` | The security groups to create and to which the instance should be added. Each security group in the list would contain `name`, `rules`, and optionally `description`.<br><br>The `rules` parameter would contain options defined [here](https://docs.ansible.com/ansible/2.6/modules/os_security_group_rule_module.html#os-security-group-rule-module). |
 

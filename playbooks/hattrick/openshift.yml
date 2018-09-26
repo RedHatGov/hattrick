@@ -1,0 +1,25 @@
+---
+
+- hosts: localhost
+  tasks:
+    - name: Provision OpenShift infrastructure
+      include_role:
+        name: openshift
+        tasks_from: provision_openstack
+
+    - name: Refresh inventory to discover OpenShift infrastructure
+      meta: refresh_inventory
+
+- hosts: openshift_hosts
+  tasks:
+    - name: Provision OpenShift infrastructure
+      include_role:
+        name: openshift
+        tasks_from: prep_hosts
+
+- hosts: openshift_master
+  tasks:
+    - name: Provision OpenShift infrastructure
+      include_role:
+        name: openshift
+        tasks_from: install_openshift

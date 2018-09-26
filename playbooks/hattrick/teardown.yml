@@ -1,0 +1,7 @@
+---
+
+- hosts: localhost
+  vars:
+    openshift_provision_action: teardown
+  roles:
+    - openshift

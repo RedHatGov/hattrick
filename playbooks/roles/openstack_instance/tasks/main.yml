@@ -1,6 +1,6 @@
 ---
 
-- name: Create volume(s)
+- name: Create volume(s) for {{ os_instance_name }}
   os_volume:
     display_name: "{{ os_instance_name }}-{{ item.name }}"
     size: "{{ item.size }}"
@@ -9,7 +9,7 @@
   loop: "{{ os_instance_volumes }}"
   register: os_instance_create_volumes
 
-- name: Create security group(s)
+- name: Create security group(s) for {{ os_instance_name }}
   os_security_group:
     name: "{{ item.name }}"
     description: "{{ item.description | default(omit) }}"
@@ -18,7 +18,7 @@
   loop: "{{ os_instance_security_groups }}"
   register: os_instance_create_security_groups
 
-- name: Create security group rule(s)
+- name: Create security group rule(s) for {{ os_instance_name }}
   os_security_group_rule:
     security_group: "{{ item.0.name }}"
     direction: "{{ item.1.direction | default(omit) }}"
@@ -29,12 +29,12 @@
     protocol: "{{ item.1.protocol | default(omit) }}"
     remote_group: "{{ item.1.remote_group | default(omit) }}"
     remote_ip_prefix: "{{ item.1.remote_ip_prefix | default(omit) }}"
-    state: "{{ item.1.state | default('present') }}"
+    state: present
     auth: "{{ os_auth | default(omit) }}"
   loop: "{{ query('subelements', os_instance_security_groups, 'rules') }}"
   register: os_instance_create_security_group_rules
 
-- name: Launch instance
+- name: Launch instance {{ os_instance_name }}
   os_server:
     name: "{{ os_instance_name }}"
     image: "{{ os_instance_image }}"
@@ -43,8 +43,9 @@
     security_groups: "{{ os_instance_security_groups | map(attribute='name') | list }}"
     volumes: "{{ os_instance_create_volumes.results | map(attribute='volume.id') | list }}"
     network: "{{ os_instance_network }}"
-    auto_ip: "{{ os_instance_auto_ip | default('yes') }}"
-    timeout: "{{ os_instance_timeout | default(300) }}"
+    auto_ip: "{{ os_instance_auto_ip | default(omit) }}"
+    timeout: "{{ os_instance_timeout | default(omit) }}"
+    terminate_volume: "{{ os_instance_terminate_volume | default(omit) }}"
     state: present
     auth: "{{ os_auth | default(omit) }}"
   register: os_instance_launch_instance

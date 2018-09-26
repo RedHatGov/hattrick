@@ -1,2 +1,6 @@
 ---
-# defaults file for openshift
+
+openshift_provision: ""
+openshift_provision_action: provision
+
+openshift_provision_node_count: 2

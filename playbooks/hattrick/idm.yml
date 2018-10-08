@@ -1,0 +1,20 @@
+---
+- hosts: kvm
+  tasks:
+    - name: Provision IdM VM
+      include_role:
+        name: idm
+        tasks_from: provision_kvm
+
+    - name: Add IdM to ansible inventory
+      add_host:
+        name: "{{ idm_hostname }}"
+        ansible_host: "{{ idm_public_ip }}"
+        rhsm_consumer_name: "{{ idm_hostname }}.{{ domain }}"
+      changed_when: no
+
+#- hosts: idm
+#  tasks:
+#    - name: Install and configure IDM
+#      include_role:
+#        name: idm

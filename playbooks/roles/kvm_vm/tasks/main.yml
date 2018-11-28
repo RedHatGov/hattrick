@@ -46,12 +46,12 @@
   virt:
     name: "{{ kvm_vm_hostname }}"
     command: define
-    xml: "{{ vm_xml_content }}"
+    xml: "{{ vm_xml_content.stdout }}"
     uri: qemu:///system
 
 - name: Start up vm
   command: "virsh start {{ kvm_vm_hostname }}"
 
 - name: Attach network interfaces for vm
-  command: "virsh attach-interface {{ item.name }} {{ item.config }} --live --persistent"
+  command: "virsh attach-interface {{ kvm_vm_hostname }} {{ item.config }} --live --persistent"
   loop: "{{ kvm_vm_nics }}"

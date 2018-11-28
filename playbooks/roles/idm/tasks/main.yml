@@ -1,2 +1,91 @@
 ---
 # tasks file for idm
+- name: set hostname
+  hostname:
+    name: "{{ rhel_idm.hostname_short }}.{{ domain }}"
+
+- name: add line to hosts file for self
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: "^{{ idm_public_ip }}"
+    line: "{{ idm_public_ip }} {{ rhel_idm.hostname_short }}.{{ domain }} {{ rhel_idm.hostname_short }}"
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: make sure cloud-init is not installed
+  yum:
+    name: cloud-init
+    state: absent
+
+- name: install IPA packages
+  yum:
+    name: "{{ rhel_idm.packages }}"
+    state: latest
+
+- name: restart server to get updated kernel
+  shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+- name: waiting for IDM server to come back online
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+
+- name: Set up IPA Server
+  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
+  when:
+  - rhel_idm is defined
+  - rhel_idm.forward_ip is defined
+
+- name: Set up IPA Server (without DNS forwarding)
+  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --no-forwarders
+  when: (rhel_idm is not defined) or (rhel_idm is defined and rhel_idm.forward_ip is not defined)
+
+- name: waiting for IDM services to come up
+  wait_for:
+    host: "{{ idm_public_ip }}"
+    port: 443
+    state: started
+    delay: 10
+    connect_timeout: 300
+    sleep: 5
+
+- name: disable dns forwarding on IDM server for disconnected install
+  shell: "echo '{{ rhel_idm.admin_pwd }}' | kinit admin && ipa dnsserver-mod --forward-policy=none {{ rhel_idm.hostname_short }}.{{ domain }}"
+  ignore_errors: true
+  when: (rhel_idm is not defined) or (rhel_idm is defined and rhel_idm.forward_ip is not defined)
+
+- name: enable dynamic updates on dns zones
+  command: "echo {{ rhel_idm.admin_pwd }} | kinit admin && ipa dnszone-mod {{ item }} --dynamic-update=TRUE"
+  with_items:
+    - "{{ domain }}"
+    - "{{ rhel_idm.reverse_zone}}"
+
+- name: enable allow ptr sync on dns zones
+  command: "echo {{ rhel_idm.admin_pwd }} | kinit admin && ipa dnszone-mod --allow-sync-ptr=1 {{ item }}"
+  with_items:
+    - "{{ domain }}"
+    - "{{ rhel_idm.reverse_zone}}"
+
+- name: remove temporary nameserver from /etc/resolv.conf file
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver {{ dns_server_public }}"
+    state: absent

@@ -12,9 +12,24 @@
         ansible_host: "{{ idm_public_ip }}"
         rhsm_consumer_name: "{{ idm_hostname }}.{{ domain }}"
       changed_when: no
+  tags: provision
 
-#- hosts: idm
-#  tasks:
-#    - name: Install and configure IDM
-#      include_role:
-#        name: idm
+- hosts: idm
+  tasks:
+    - name: Register to RHSM
+      vars:
+        rhsm_repos: "{{ rhel_idm.repos }}"
+      include_role:
+        name: rhsm
+      tags: install
+
+    - name: Install IDM
+      include_role:
+        name: idm
+      tags: install
+
+    - name: Configure IDM
+      include_role:
+        name: idm
+        tasks_from: post_config
+      tags: post-config

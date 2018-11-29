@@ -9,8 +9,8 @@
 - name: Grow root file system to size of disk
   command: "virt-customize -a /var/lib/libvirt/images/{{ kvm_vm_os_disk_name }}.qcow2 --run-command 'xfs_growfs /'"
 
-- debug:
-    msg: "{{ kvm_vm_nics }}"
+- name: Set the root password for the vm and uninstall cloud-init
+  command: "virt-customize -a /var/lib/libvirt/images/{{ kvm_vm_os_disk_name }}.qcow2 --root-password password:{{ kvm_vm_root_pwd }} --uninstall cloud-init"
 
 - name: Create the ifcfg files for vm
   template:

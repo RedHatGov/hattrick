@@ -1,5 +1,6 @@
 ---
 - hosts: kvm
+  tags: provision
   tasks:
     - name: Provision IdM VM
       include_role:
@@ -12,7 +13,15 @@
         ansible_host: "{{ idm_public_ip }}"
         rhsm_consumer_name: "{{ idm_hostname }}.{{ domain }}"
       changed_when: no
-  tags: provision
+
+    - name: waiting for IDM ssh to come online
+      wait_for:
+        host: "{{ idm_public_ip }}"
+        port: 22
+        state: started
+        delay: 10
+        connect_timeout: 300
+        sleep: 5
 
 - hosts: idm
   tasks:

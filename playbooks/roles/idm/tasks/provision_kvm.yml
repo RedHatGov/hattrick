@@ -2,6 +2,7 @@
 - name: Create KVM IdM VM
   vars:
     kvm_vm_hostname: "{{ idm_hostname }}"
+    kvm_vm_root_pwd: "{{ idm_root_pwd }}"
     kvm_vm_base_img: rhel-guest-image-7.qcow2
     kvm_vm_vcpus: "{{ idm_vcpus }}"
     kvm_vm_ram: "{{ idm_ram }}"

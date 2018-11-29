@@ -24,11 +24,6 @@
   ignore_errors: true
   register: reboot_hint
 
-- name: make sure cloud-init is not installed
-  yum:
-    name: cloud-init
-    state: absent
-
 - name: install IPA packages
   yum:
     name: "{{ rhel_idm.packages }}"

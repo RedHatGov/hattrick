@@ -1,2 +1,344 @@
 ---
 # tasks file for director
+- name: disable UseDNS in the /etc/ssh/sshd_config file
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^UseDNS"
+    line: "UseDNS no"
+    insertafter: EOF
+    state: present
+  register: ssh_config
+
+#TODO: examine current dns dns server on the kvm host
+#      keep that value, check it's validity. Set it to something useful
+
+- name: reload ssh
+  service:
+    name: sshd
+    state: reloaded
+  when: ssh_config.changed
+
+- name: enable SELinux
+  selinux:
+    policy: targeted
+    state: enforcing
+
+- name: turn off requiretty for sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: "{{ item.line }}"
+    state: "{{ item.state }}"
+  with_items:
+     - { line: "Defaults !requiretty", state: present }
+     - { line: "Defaults requiretty", state: absent }
+
+- name: check sudoers
+  shell: cat /etc/sudoers | grep tty
+  register: sudoers_output
+
+- name: set hostname
+  hostname:
+    name: "{{ rhosp_director.hostname_short }}.{{ domain }}"
+
+- name: add line to hosts file for self
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: "^{{ director_public_ip }}"
+    line: "{{ director_public_ip }} {{ rhosp_director.hostname_short }}.{{ domain }} {{ rhosp_director.hostname_short }}"
+
+- sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: add stack user and set password
+  user:
+    name: stack
+    password: "{{ rhosp_director.stack_user_pwd }}"
+
+- name: allow stack user to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^stack'
+    line: 'stack ALL=(ALL) NOPASSWD:ALL'
+
+- name: turn off requiretty for sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: "{{ item.line }}"
+    state: "{{ item.state }}"
+  with_items:
+     - { line: "Defaults !requiretty", state: present }
+     - { line: "Defaults requiretty", state: absent }
+
+- name: check sudoers
+  shell: cat /etc/sudoers | grep tty
+  register: sudoers_output
+
+- name: install several useful utility and undercloud packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'screen'
+    - 'wget'
+    - 'vim'
+    - 'tree'
+    - 'yum-utils'
+    - 'facter'
+    - 'crudini'
+    - 'git'
+    - 'libguestfs-tools-c'
+    - 'python-tripleoclient'
+    - 'rhosp-director-images'
+    - 'rhosp-director-images-ipa'
+
+- name: install ceph ansible if RHOSP 12+
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'ceph-ansible'
+  when: versions.rhosp >= 12
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: restart undercloud machine to get updated kernel
+  shell: sleep 2 && shutdown -r now "Ansible restart triggered for RHOSP Director install"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+- name: waiting for Server to come back
+  wait_for:
+    host: "{{ director_public_ip }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+
+- name: setting provisioning interface onboot=no
+  lineinfile:
+    dest: /etc/sysconfig/network-scripts/ifcfg-{{ rhosp_director.provisioning_interface }}
+    state: present
+    regexp: '^ONBOOT'
+    line: 'ONBOOT=no'
+
+- name: copy undercloud.conf template
+  copy:
+    src: /usr/share/instack-undercloud/undercloud.conf.sample
+    dest: /home/stack/undercloud.conf
+    remote_src: true
+    owner: stack
+    group: stack
+    mode: 0664
+
+- name: set undercloud.conf variables in the default section
+  ini_file:
+    dest: /home/stack/undercloud.conf
+    section: DEFAULT
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    mode: 0644
+    backup: no
+  with_items:
+    - { key: image_path, value: "/home/stack/images" }
+    - { key: undercloud_hostname, value: "{{ rhosp_director.hostname_short }}.{{ domain }}" }
+    - { key: overcloud_domain_name, value: "{{ rhosp_director.cloud_domain }}" }
+    - { key: local_ip, value: "{{ rhosp_director.provisioning_ip }}" }
+    - { key: local_interface, value: "{{ rhosp_director.provisioning_interface }}" }
+    - { key: local_mtu, value: "{{ rhosp_director.provisioning_interface_mtu }}" }
+    - { key: undercloud_public_vip, value: "{{ director_public_ip }}" }
+    - { key: undercloud_admin_vip, value: "{{ rhosp_director.admin_apis_vip }}" }
+    - { key: generate_service_certificate, value: "{{ rhosp_director.generate_service_certificate | default('true') }}" }
+    - { key: certificate_generate_ca, value: "local" }
+    - { key: undercloud_service_certificate, value: ""}
+    - { key: service_principal, value: ""}
+    - { key: network_cidr, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: network_gateway, value: "{{ rhosp_director.provisioning_network_gateway }}" }
+    - { key: masquerade_network, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: dhcp_start, value: "{{ rhosp_director.deploy_dhcp_start }}" }
+    - { key: dhcp_end, value: "{{ rhosp_director.deploy_dhcp_end }}" }
+    - { key: inspection_interface, value: "br-ctlplane"}
+    - { key: inspection_iprange, value: "{{ rhosp_director.inspection_dhcp_start }},{{ rhosp_director.inspection_dhcp_end }}" }
+    - { key: inspection_runbench, value: "false"}
+    - { key: inspection_enable_uefi, value: "true"}
+    - { key: undercloud_debug, value: "false"}
+    - { key: enable_tempest, value: "true"}
+    - { key: enable_validations, value: "true"}
+    - { key: enable_mistral, value: "true"}
+    - { key: enable_zaqar, value: "true"}
+    - { key: enable_telemetry, value: "true"}
+    - { key: enable_ui, value: "true"}
+    - { key: ipxe_enabled, value: "true"}
+    - { key: store_events, value: "true" }
+    - { key: clean_nodes, value: "{{ rhosp_director.clean_nodes }}"}
+    - { key: undercloud_name_servers, value: "{{ dns_server_local }}"}
+    - { key: undercloud_ntp_servers, value: "{{ rhosp_director.ntp_servers }}"}
+  when: versions.rhosp < 12
+
+- name: set undercloud.conf variables in the default section
+  ini_file:
+    dest: /home/stack/undercloud.conf
+    section: DEFAULT
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    mode: 0644
+    backup: no
+  with_items:
+    - { key: image_path, value: "/home/stack/images" }
+    - { key: undercloud_hostname, value: "{{ rhosp_director.hostname_short }}.{{ domain }}" }
+    - { key: overcloud_domain_name, value: "{{ rhosp_director.cloud_domain }}" }
+    - { key: local_ip, value: "{{ rhosp_director.provisioning_ip }}" }
+    - { key: local_interface, value: "{{ rhosp_director.provisioning_interface }}" }
+    - { key: local_mtu, value: "{{ rhosp_director.provisioning_interface_mtu }}" }
+    - { key: undercloud_public_host, value: "{{ director_public_ip }}" }
+    - { key: undercloud_admin_host, value: "{{ rhosp_director.admin_apis_vip }}" }
+    - { key: generate_service_certificate, value: "{{ rhosp_director.generate_service_certificate | default('true') }}" }
+    - { key: certificate_generate_ca, value: "local" }
+    - { key: undercloud_service_certificate, value: ""}
+    - { key: service_principal, value: ""}
+    - { key: network_cidr, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: network_gateway, value: "{{ rhosp_director.provisioning_network_gateway }}" }
+    - { key: masquerade_network, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: dhcp_start, value: "{{ rhosp_director.deploy_dhcp_start }}" }
+    - { key: dhcp_end, value: "{{ rhosp_director.deploy_dhcp_end }}" }
+    - { key: inspection_interface, value: "br-ctlplane"}
+    - { key: inspection_iprange, value: "{{ rhosp_director.inspection_dhcp_start }},{{ rhosp_director.inspection_dhcp_end }}" }
+    - { key: inspection_runbench, value: "false"}
+    - { key: inspection_enable_uefi, value: "true"}
+    - { key: undercloud_debug, value: "false"}
+    - { key: enable_tempest, value: "true"}
+    - { key: enable_validations, value: "true"}
+    - { key: enable_telemetry, value: "true"}
+    - { key: enable_ui, value: "true"}
+    - { key: ipxe_enabled, value: "true"}
+    - { key: store_events, value: "true" }
+    - { key: clean_nodes, value: "{{ rhosp_director.clean_nodes }}"}
+    - { key: undercloud_name_servers, value: "{{ dns_server_local }}"}
+    - { key: undercloud_ntp_servers, value: "{{ rhosp_director.ntp_servers }}"}
+  when: versions.rhosp >= 12
+
+- name: set undercloud.conf variables in the auth section
+  ini_file:
+    dest: /home/stack/undercloud.conf
+    option: undercloud_admin_password
+    section: auth
+    value: "{{ rhosp_director.admin_password }}"
+    mode: 0644
+    backup: no
+
+- name: make images and templates directories
+  become: yes
+  become_user: stack
+  file:
+    path: "/home/stack/{{ item }}"
+    state: directory
+    mode: 0755
+    owner: stack
+    group: stack
+  with_items:
+    - 'images'
+    - 'templates'
+
+- name: unpacking overcloud and ironic images
+  become: yes
+  become_user: stack
+  unarchive:
+    src: "{{ item }}"
+    remote_src: true
+    dest: /home/stack/images
+  with_items:
+    - '/usr/share/rhosp-director-images/overcloud-full-latest-{{ versions.rhosp }}.0.tar'
+    - '/usr/share/rhosp-director-images/ironic-python-agent-latest-{{ versions.rhosp }}.0.tar'
+
+- name: install the Undercloud
+  become: yes
+  become_user: stack
+  shell: openstack undercloud install
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+
+- name: adding overcloud images to OSPD
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack overcloud image upload
+  args:
+    chdir: /home/stack/images
+
+- name: adding dns to ctlplane subnet
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr | ipaddr('network') }}/ {print $2}')
+
+- name: configuring fernet tokens for overcloud
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && sudo keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone && sudo tar -zcf /home/stack/keystone-fernet-keys.tar.gz /etc/keystone/fernet-keys && upload-swift-artifacts -f /home/stack/keystone-fernet-keys.tar.gz
+  when: versions.rhosp < 13
+
+- name: set debug flag to false in DEFAULT section
+  ini_file:
+    dest: "{{ item }}"
+    section: DEFAULT
+    option: debug
+    value: false
+    backup: no
+  with_items:
+    - '/etc/nova/nova.conf'
+    - '/etc/neutron/neutron.conf'
+    - '/etc/heat/heat.conf'
+    - '/etc/ironic/ironic.conf'
+
+- name: fix ceilometer database ttls
+  ini_file:
+    dest: /etc/ceilometer/ceilometer.conf
+    section: database
+    option: "{{ item }}"
+    value: 259200
+    backup: no
+  with_items:
+    - 'metering_time_to_live'
+    - 'event_time_to_live'
+
+- name: Change dhcp_domain in nova.conf
+  lineinfile:
+    dest: /etc/nova/nova.conf
+    regexp: '^dhcp_domain='
+    line: "dhcp_domain={{ rhosp_director.cloud_domain }}"
+  when: versions.rhosp < 12
+
+- name: restart openstack services
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - 'openstack-*'
+    - 'neutron-*'
+    - 'httpd'
+
+- name: install several useful utility and undercloud packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python-pyghmi

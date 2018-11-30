@@ -13,3 +13,7 @@ all:
       ansible_host: "{{ idm_public_ip }}"
       ansible_ssh_user: "{{ kvm_ssh_user }}"
       ansible_ssh_pass: "{{ kvm_ssh_pass }}"
+    director:
+      ansible_host: "{{ director_public_ip }}"
+      ansible_ssh_user: "{{ kvm_ssh_user }}"
+      ansible_ssh_pass: "{{ kvm_ssh_pass }}"

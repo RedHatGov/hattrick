@@ -27,7 +27,7 @@
   tasks:
     - name: Register to RHSM
       vars:
-        rhsm_repos: "{{ rhel_idm.repos }}"
+        rhsm_repos: "{{ idm_repos }}"
       include_role:
         name: rhsm
       tags: install

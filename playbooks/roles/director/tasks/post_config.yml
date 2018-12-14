@@ -1,0 +1,176 @@
+- name: create instackenv file
+  copy:
+    content: "{{ lookup('template', 'templates/instackenv.json.j2') | to_nice_json }}"
+    dest: "/home/stack/instackenv.json"
+  tags: introspection
+
+- name: ping check on IPMI IP
+  command: ping -c 2 -w 5 {{ item.pm_addr }}
+  register: ping_response
+  ignore_errors: true
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  tags: introspection
+
+- name: debug ping responses
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ ping_response.results }}"
+  tags: introspection
+
+- name: set validation errors for failed pings
+  set_fact:
+    validation_errors: "{{ validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
+  when: "item.rc != 0"
+  with_items: "{{ ping_response.results }}"
+  tags: introspection
+
+- name: ensure ipmi boot network
+  ipmi_boot:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    bootdev: "{{ rhosp_director.bootdev|default('network') }}"
+    state: present
+  when: "item.pm_driver == 'pxe_ipmitool'"
+  register: ipmi_boot
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  ignore_errors: true
+  tags: introspection
+
+- name: set validation errors as needed for ipmi issues
+  set_fact:
+    validation_errors: "{{ rhosp_director.validation_errors }} + [ 'error checking ipmi on {{ item.item.pm_addr }} - please confirm credentials access and IPMI configuration ' ]"
+  when: "{{ item.failed|default('false')|bool }}"
+  with_items: "{{ ipmi_boot.results }}"
+  tags: introspection
+
+- name: debug validation errors
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ rhosp_director.validation_errors }}"
+  tags: introspection
+
+- name: poweroff all servers when poweroff == true
+  ipmi_power:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    state: off
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  when: 'rhosp_director.poweroff|bool'
+  ignore_errors: true
+  tags: introspection
+
+- name: check failure
+  fail:
+    msg: "\n - {{ rhosp_director.validation_errors|join('\n') }}"
+  when: validation_errors is defined and validation_errors|length > 0
+  tags: introspection
+
+- name: import introspect and provide nodes
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack overcloud node import --introspect --provide instackenv.json
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+  tags: introspection
+
+- name: set root devices for all nodes (default is /dev/sda)
+  become: yes
+  become_user: stack
+  shell: "source /home/stack/stackrc && openstack baremetal node set --property root_device='{\"name\": \"{{ item.root_device|default('/dev/sda')}}\"}' {{ item.name }}"
+  args:
+    chdir: /home/stack
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  tags: introspection
+
+- name: success
+  debug:
+    msg: ipmi completely validated
+  tags: introspection
+
+- name: Configure undercloud for local Docker repo
+  become: yes
+  become_user: stack
+  when: versions.rhosp >= 12
+  tags: docker_registry
+  block:
+    - name: Discover the tag for the latest Docker images
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image tag discover --image "registry.access.redhat.com/rhosp{{ versions.rhosp }}/openstack-base:latest" --tag-from-label version-release
+      args:
+        chdir: /home/stack
+      register: docker_latest
+      tags: docker_registry_template
+      when: disconnected is not defined and versions.rhosp == 12
+
+    - name: copy generate-container-prepare.sh script
+      template:
+        src: templates/generate-container-prepare.sh.j2
+        dest: /home/stack/generate-container-prepare.sh
+        owner: stack
+        group: stack
+        mode: 0775
+      tags: docker_registry_template
+      when: disconnected is not defined
+
+    - name: Pull the Docker images in to local registry
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
+      args:
+        chdir: /home/stack
+      async: 2700
+      poll: 30
+      tags: docker_registry_pull
+      when: disconnected is not defined
+
+    - name: Pull the Docker images from a URL source
+      shell: curl "{{ disconnected.docker.source }}" | gzip -d | sudo docker load
+      async: 2700
+      poll: 30
+      tags: docker_registry_pull
+      when: disconnected is defined and disconnected.docker is defined
+
+    - name: Set tags for Docker images
+      shell: curl "{{ disconnected.docker.tag_file }}" | while read a b c; do sudo docker tag "$c" "$a:$b"; done
+      async: 2700
+      poll: 30
+      tags: docker_registry_pull
+      when: disconnected is defined and disconnected.docker is defined
+
+    - name: Push local images to local repository
+      shell: for t in $(sudo docker images | sed '1d' | awk '/{{ rhosp_director.provisioning_ip | ipaddr('address') }}/ {print $1":"$2}'); do sudo docker push $t; done
+      tags: docker_registry_push
+      when: disconnected is defined and disconnected.docker is defined
+
+    - name: Create a template to pull the images to the local registry
+      shell: source /home/stack/stackrc && /home/stack/generate-container-prepare.sh
+      args:
+        chdir: /home/stack
+      tags: docker_registry_template
+      tags: docker_registry_template,docker_overcloud_registry
+
+- name: Process local CA for undercloud SSL
+  become: yes
+  become_user: stack
+  tags: inject_local_ca
+  when: ( rhosp_director.generate_service_certificate is not defined ) or ( rhosp_director.generate_service_certificate == true )
+  block:
+    - name: Check to see if local ca file exists
+      stat:
+        path: "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      register: stat_data
+
+    - name: Read in CA that is used to for Undercloud SSL services
+      shell: /bin/awk 'BEGIN{display=0};/BEGIN CERTIFICATE/ {display=1}; (display==1) {print "    "$0}; /END CERTIFICATE/ {display=0};' "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      when: stat_data.stat.exists
+      register: ssl_ca_certificate
+
+    - name: Generate trust anchor environment file
+      template:
+        src: templates/inject-trust-anchor.yaml.j2
+        dest: /home/stack/templates/inject-trust-anchor.yaml
+        owner: stack
+        group: stack
+        mode: 0444
+      when: stat_data.stat.exists

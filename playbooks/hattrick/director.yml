@@ -1,0 +1,37 @@
+---
+- hosts: kvm
+  tags: provision
+  tasks:
+    - name: Provision Director VM
+      include_role:
+        name: director
+        tasks_from: provision_kvm
+
+    - name: Add Director to ansible inventory
+      add_host:
+        name: "{{ director_hostname }}"
+        ansible_host: "{{ director_public_ip }}"
+        rhsm_consumer_name: "{{ director_hostname }}.{{ domain }}"
+      changed_when: no
+
+    - name: waiting for Director ssh to come online
+      wait_for:
+        host: "{{ director_public_ip }}"
+        port: 22
+        state: started
+        delay: 10
+        connect_timeout: 300
+        sleep: 5
+
+- hosts: director
+  tags: install
+  tasks:
+    - name: Register to RHSM
+      vars:
+        rhsm_repos: "{{ rhosp_director.repos }}"
+      include_role:
+        name: rhsm
+
+    - name: Install Director
+      include_role:
+        name: director

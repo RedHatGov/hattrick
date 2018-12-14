@@ -1,0 +1,48 @@
+---
+- hosts: kvm
+  tags: provision
+  tasks:
+    - name: Provision RH Content VM
+      include_role:
+        name: content
+        tasks_from: provision_kvm
+
+    - name: Add Content to ansible inventory
+      add_host:
+        name: "{{ content_hostname }}"
+        ansible_host: "{{ content_public_ip }}"
+        rhsm_consumer_name: "{{ content_hostname }}.{{ domain }}"
+      changed_when: no
+
+    - name: waiting for Content ssh to come online
+      wait_for:
+        host: "{{ content_public_ip }}"
+        port: 22
+        state: started
+        delay: 10
+        connect_timeout: 300
+        sleep: 5
+
+- hosts: content
+  tasks:
+    - name: Register to RHSM
+      vars:
+        rhsm_repos: "{{ content_repos }}"
+      include_role:
+        name: rhsm
+      tags: install
+
+    - name: Install and configure Repo
+      include_role:
+        name: repo
+      tags: install
+
+    - name: Install and configure Registry
+      include_role:
+        name: registry
+      tags: install
+
+    - name: Install and configure NFS
+      include_role:
+        name: nfs
+      tags: install

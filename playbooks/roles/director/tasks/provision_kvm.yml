@@ -1,0 +1,13 @@
+---
+- name: Create KVM Director VM
+  vars:
+    kvm_vm_hostname: "{{ director_hostname }}"
+    kvm_vm_root_pwd: "{{ director_root_pwd }}"
+    kvm_vm_base_img: rhel-guest-image-7.qcow2
+    kvm_vm_vcpus: "{{ director_vcpus }}"
+    kvm_vm_ram: "{{ director_ram }}"
+    kvm_vm_os_disk_name: "{{ director_os_disk_name }}"
+    kvm_vm_os_disk_size: "{{ director_os_disk_size }}"
+    kvm_vm_nics: "{{ director_nics }}"
+  include_role:
+    name: kvm_vm

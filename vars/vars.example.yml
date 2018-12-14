@@ -1,4 +1,163 @@
 ---
+#Global
+use_public_dns: true
+domain: hattrick.lab
+dns_server_local: 192.168.0.4
+dns_server_public: 192.168.0.1
+ntp_server: time.google.com
+git_repo: https://github.com/redhat-kejones/ht
+
+versions:
+  rhosp: 10
+  ceph: 2
+  satellite: 6.3
+  ocp: 3.9
+  cfme: 5.9
+
+networks:
+  external:
+    name: external
+    cidr: 192.168.0.0/23
+    defroute: true
+    gateway: 192.168.0.1
+    vlan: 1
+    dhcpStart: 192.168.1.40
+    dhcpEnd: 192.168.1.69
+    fipStart: 192.168.1.70
+    fipEnd: 192.168.1.199
+  provisioning:
+    name: provisioning
+    cidr: 192.168.2.0/24
+    defroute: false
+    gateway: 192.168.2.5
+    vlan: 2
+    dhcpStart: 192.168.2.70
+    dhcpEnd: 192.168.2.99
+  internal_api:
+    name: internal_api
+    cidr: 192.168.100.0/24
+    defroute: false
+    vlan: 900
+    dhcpStart: 192.168.100.40
+    dhcpEnd: 192.168.100.250
+  tenant:
+    name: tenant
+    cidr: 192.168.101.0/24
+    defroute: false
+    vlan: 901
+    dhcpStart: 192.168.101.40
+    dhcpEnd: 192.168.101.250
+  storage:
+    name: storage
+    cidr: 192.168.102.0/24
+    defroute: false
+    vlan: 902
+    dhcpStart: 192.168.102.40
+    dhcpEnd: 192.168.102.250
+  storage_mgmt:
+    name: storage_mgmt
+    cidr: 192.168.103.0/24
+    defroute: false
+    vlan: 903
+    dhcpStart: 192.168.103.40
+    dhcpEnd: 192.168.103.250
+  provider:
+    name: provider
+    cidr: 192.168.104.0/24
+    defroute: false
+    gateway: 192.168.104.1
+    vlan: 904
+    dhcpStart: 192.168.104.40
+    dhcpEnd: 192.168.104.250
+
+#KVM
+#kvm_public_ip: 192.168.0.3
+kvm_public_ip: 192.168.0.1
+kvm_ssh_user: root
+kvm_ssh_pass: p@ssw0rd
+
+#TODO: rework this dict
+rhel_kvm:
+  hostname_full: kvm.{{ domain }}
+  disks:
+    root: sda
+    #libvirt_images: sdb
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+  packages:
+    - screen
+    - wget
+    - vim
+    - tree
+    - yum-utils
+    - git
+    - qemu-kvm
+    - qemu-img
+    - libvirt
+    - virt-install
+    - libvirt-client
+    - libvirt-python
+    - libguestfs-tools-c
+    - rhel-guest-image-7
+    - ansible
+
+register_rhn: true
+rhsm_username: rhnusername
+rhsm_password: p@ssw0rd
+rhsm_pool: ...
+
+#IdM
+idm_hostname: idm #Short hostname
+idm_root_pwd: p@ssw0rd
+idm_public_ip: "{{ dns_server_local }}"
+idm_base_img: rhel-guest-image-7.qcow2
+idm_os_disk_name: "{{ idm_hostname }}"
+idm_nics:
+  - name: eth0
+    bootproto: static
+    onboot: yes
+    ip: "{{ idm_public_ip }}"
+    prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
+    gateway: "{{ networks.external.gateway }}"
+    dns_server: "{{ dns_server_public }}"
+    config: "--type network --source external --model virtio"
+idm_realm: "{{ domain | upper }}"
+idm_dm_pwd: "p@ssw0rd"
+idm_admin_pwd: "p@ssw0rd"
+idm_forward_ip: "{{ dns_server_public }}"
+idm_reverse_zone: "168.192.in-addr.arpa."
+idm_users:
+  - username: operator
+    password: p@ssw0rd
+    display_name: "MPC Operator"
+    first_name: MPC
+    last_name: Operator
+    email: "mpc-support@redhat.com"
+    phone: "+18887334281"
+    title: "Mobile Portfolio Center Operator"
+idm_dns_records:
+  - hostname: wwan
+    record_type: A
+    ip_address: 192.168.0.1
+    reverse_record: 1.0
+  - hostname: switch
+    record_type: A
+    ip_address: 192.168.0.2
+    reverse_record: 2.0
+  - hostname: kvm
+    record_type: A
+    ip_address: 192.168.0.3
+    reverse_record: 3.0
+  - hostname: undercloud
+    record_type: A
+    ip_address: 192.168.0.5
+    reverse_record: 5.0
+  - hostname: openstack
+    record_type: A
+    ip_address: 192.168.1.40
+    reverse_record: 40.1
 
 os_auth:
   auth_url: http://openstack.example.com:5000

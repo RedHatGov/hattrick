@@ -81,21 +81,8 @@
 
 - name: install several useful utility and undercloud packages
   yum:
-    name: "{{ item }}"
+    name: "{{ rhosp_director.packages }}"
     state: latest
-  with_items:
-    - 'screen'
-    - 'wget'
-    - 'vim'
-    - 'tree'
-    - 'yum-utils'
-    - 'facter'
-    - 'crudini'
-    - 'git'
-    - 'libguestfs-tools-c'
-    - 'python-tripleoclient'
-    - 'rhosp-director-images'
-    - 'rhosp-director-images-ipa'
 
 - name: install ceph ansible if RHOSP 12+
   yum:

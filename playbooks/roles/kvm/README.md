@@ -1,7 +1,7 @@
-Role Name
+kvm
 =========
 
-Turn a regular RHEL server into a RHEL+KVM hypervisor.
+Turn a regular RHEL 7 server into a RHEL+KVM hypervisor.
 
 Requirements
 ------------
@@ -14,12 +14,42 @@ Requirements
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- `domain`: the domain for the machine. Default is "example.com"
+- `dns_server_local`: Local dns server IP for your environment. Default is "192.168.0.4"
+- `dns_server_public`: Public dns server IP. Default is "1.1.1.1"
+- `git_repo`: Location of the Project Hat Trick repo on GitHub. Set to "https://github.com/redhat-kejones/ht"
+
+
+kvm_hostname_full: kvm.{{ domain }}
+kvm_disks:
+  root: sda
+  #libvirt_images: sdb
+  #content: sdc
+kvm_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-rh-common-rpms
+kvm_packages:
+  - 'screen'
+  - 'wget'
+  - 'vim'
+  - 'tree'
+  - 'yum-utils'
+  - 'git'
+  - 'qemu-kvm'
+  - 'qemu-img'
+  - 'libvirt'
+  - 'virt-install'
+  - 'libvirt-client'
+  - 'libvirt-python'
+  - 'libguestfs-tools-c'
+  - 'rhel-guest-image-7'
+  - 'ansible'
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- redhatgov.rhsm
 
 Example Playbook
 ----------------
@@ -33,7 +63,7 @@ Including an example of how to use your role (for instance, with variables passe
 License
 -------
 
-BSD
+GPLv3
 
 Author Information
 ------------------

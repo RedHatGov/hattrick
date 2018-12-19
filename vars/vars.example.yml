@@ -70,43 +70,20 @@ networks:
     dhcpStart: 192.168.104.40
     dhcpEnd: 192.168.104.250
 
-#KVM
-#kvm_public_ip: 192.168.0.3
-kvm_public_ip: 192.168.0.1
-kvm_ssh_user: root
-kvm_ssh_pass: p@ssw0rd
-
-#TODO: rework this dict
-rhel_kvm:
-  hostname_full: kvm.{{ domain }}
-  disks:
-    root: sda
-    #libvirt_images: sdb
-  repos:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
-    - rhel-7-server-rh-common-rpms
-  packages:
-    - screen
-    - wget
-    - vim
-    - tree
-    - yum-utils
-    - git
-    - qemu-kvm
-    - qemu-img
-    - libvirt
-    - virt-install
-    - libvirt-client
-    - libvirt-python
-    - libguestfs-tools-c
-    - rhel-guest-image-7
-    - ansible
-
 register_rhn: true
 rhsm_username: rhnusername
 rhsm_password: p@ssw0rd
 rhsm_pool: ...
+
+#KVM
+kvm_hostname_full: kvm.{{ domain }}
+kvm_public_ip: 192.168.0.3
+kvm_ssh_user: root
+kvm_ssh_pass: p@ssw0rd
+kvm_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-rh-common-rpms
 
 #IdM
 idm_hostname: idm #Short hostname

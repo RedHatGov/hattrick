@@ -38,23 +38,7 @@
 
 - name: set hostname
   hostname:
-    name: "{{ rhel_kvm.hostname_full }}"
-
-#- name: remove any repo files
-#  shell: rm -rf /etc/yum.repos.d/*.repo
-
-#- name: enable the needed rhel repositories
-#  yum_repository:
-#    name: "{{ item }}"
-#    description: "{{ item }}"
-  #   baseurl: "{{ local_repo_url }}{{ item }}"
-  #   gpgcheck: no
-  #   enabled: yes
-  #   file: rhn-local
-  #   state: present
-  # with_items:
-  #   - "{{ rhel_kvm.repos }}"
-  # when: not register_rhn
+    name: "{{ kvm_hostname_full }}"
 
 - name: check if virtualization extensions exist
   command: grep -E 'svm|vmx' /proc/cpuinfo
@@ -79,7 +63,7 @@
 
 - name: install several useful utility and kvm packages
   yum:
-    name: "{{ rhel_kvm.packages }}"
+    name: "{{ kvm_packages }}"
     state: latest
 
 - name: copying kvm.conf file
@@ -100,69 +84,69 @@
   mount:
     path: /var/lib/libvirt/images
     state: unmounted
-  when: rhel_kvm.disks.libvirt_images is defined
+  when: kvm_disks.libvirt_images is defined
 
-- name: "read {{ rhel_kvm.disks.libvirt_images }} device information (always use unit when probing)"
+- name: "read {{ kvm_disks.libvirt_images }} device information (always use unit when probing)"
   parted:
-    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    device: "/dev/{{ kvm_disks.libvirt_images }}"
     unit: MiB
   register: libvirt_images_info
-  when: rhel_kvm.disks.libvirt_images is defined
+  when: kvm_disks.libvirt_images is defined
 
-- name: "remove all partitions from {{ rhel_kvm.disks.libvirt_images }}"
+- name: "remove all partitions from {{ kvm_disks.libvirt_images }}"
   parted:
-    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    device: "/dev/{{ kvm_disks.libvirt_images }}"
     number: "{{ item.num }}"
     state: absent
   with_items:
    - "{{ libvirt_images_info.partitions }}"
   ignore_errors: true
-  when: rhel_kvm.disks.libvirt_images is defined
+  when: kvm_disks.libvirt_images is defined
 
-- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
+- name: "create 1 primary partition on {{ kvm_disks.libvirt_images }}"
   parted:
-    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    device: "/dev/{{ kvm_disks.libvirt_images }}"
     number: 1
     state: present
     label: gpt
-  when: rhel_kvm.disks.libvirt_images is defined
+  when: kvm_disks.libvirt_images is defined
 
-- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
+- name: "format {{ kvm_disks.libvirt_images }}1 xfs"
   filesystem:
     fstype: xfs
-    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
-    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+    dev: "/dev/{{ kvm_disks.libvirt_images }}1"
+    force: "{{ kvm_disks.destructive_filesystem }}"
   when:
-    - rhel_kvm.disks.libvirt_images is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - kvm_disks.libvirt_images is defined
+    - kvm_disks.destructive_filesystem is defined
 
-- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
+- name: "create 1 primary partition on {{ kvm_disks.libvirt_images }}"
   parted:
-    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    device: "/dev/{{ kvm_disks.libvirt_images }}"
     number: 1
     state: present
     label: gpt
   when:
-    - rhel_kvm.disks.libvirt_images is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - kvm_disks.libvirt_images is defined
+    - kvm_disks.destructive_filesystem is defined
 
-- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
+- name: "format {{ kvm_disks.libvirt_images }}1 xfs"
   filesystem:
     fstype: xfs
-    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
-    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+    dev: "/dev/{{ kvm_disks.libvirt_images }}1"
+    force: "{{ kvm_disks.destructive_filesystem }}"
   when:
-    - rhel_kvm.disks.libvirt_images is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - kvm_disks.libvirt_images is defined
+    - kvm_disks.destructive_filesystem is defined
 
-- name: "mount {{ rhel_kvm.disks.libvirt_images }}1 for libvirt images"
+- name: "mount {{ kvm_disks.libvirt_images }}1 for libvirt images"
   mount:
     path: /var/lib/libvirt/images
-    src: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+    src: "/dev/{{ kvm_disks.libvirt_images }}1"
     fstype: xfs
     opts: defaults
     state: mounted
-  when: rhel_kvm.disks.libvirt_images is defined
+  when: kvm_disks.libvirt_images is defined
 
 - name: starting libvirtd back up
   service:
@@ -170,7 +154,6 @@
     enabled: yes
     state: started
 
-#TODO: Revisit key generation and fetching
 - name: generate ssh key for use across systems
   user:
     name: root
@@ -183,25 +166,20 @@
     src: files/ssh_config
     dest: /root/.ssh/config
 
-- name: fetch public key from KVM host
-  fetch:
-    src: /root/.ssh/id_rsa.pub
-    dest: "{{ playbook_dir }}/files/kvm_root_id_rsa.pub"
-    flat: yes
-
 - name: copy over the rhel guest image for later virtual disk images
   copy:
     src: "/usr/share/rhel-guest-image-7/rhel-guest-image-7.2-20160302.0.x86_64.qcow2"
     dest: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
     remote_src: true
 
+#TODO: Need to correct this to expect vms to have cloud-init drive
 - name: remove cloud-init and set root password on base rhel 7 guest image
-  command: "virt-customize -a /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat --run-command 'yum remove cloud-init* -y'"
+  command: "virt-customize -a /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat --uninstall cloud-init"
 
 - name: copy over ansible.cfg
   copy:
-    src: "{{ playbook_dir }}/../../ansible.cfg"
-    dest: /root/.ansible.cfg
+    src: "files/ansible.cfg"
+    dest: /root/ansible.cfg
 
 - name: copy chrony.conf script for disconnected ntp master
   template:

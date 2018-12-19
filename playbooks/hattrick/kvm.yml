@@ -17,7 +17,7 @@
 
     - name: Deploy kvm
       include_role:
-        name: kvm
+        name: ansible-kvm
 
     - name: fetch public key from KVM host for use later
       fetch:

@@ -3,7 +3,7 @@
   hosts: kvm
   gather_facts: no
   roles:
-    - copy_local_pub_key
+    - ansible-copy-local-pub-key
 
 - name: Play to deploy kvm host
   hosts: kvm

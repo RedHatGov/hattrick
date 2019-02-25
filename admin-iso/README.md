@@ -35,16 +35,16 @@ install certain packages that are listed in the custom kickstart file
 # cd /mnt/working/Packages
 # createrepo .
 ```
-6. Download the rhel-7-server-ansible-2.5-rpms repo to the /mnt/working/
+6. Download the rhel-7-server-ansible-<latest>-rpms repo to the /mnt/working/
 directory.
 > NOTE: Some of the automation in the Hat Trick repo requires Ansible > 2.5.
-> The idea is that you will have the Ansible 2.5 repos available for installation
+> The idea is that you will have the Ansible 2.5 (or higher) repos available for installation
 > during the kickstart process.
 > [How to Create a Local Repo in RHEL](https://access.redhat.com/solutions/9892)
-7. Create the ansible 2.5 repo in the
-/mnt/working/rhel-7-server-ansible-2.5-rpms/Packages directory
+7. Create the ansible repo in the
+/mnt/working/rhel-7-server-ansible-<version>-rpms/Packages directory
 ```
-# cd /mnt/working/rhel-7-server-ansible-2.5-rpms/Packages
+# cd /mnt/working/rhel-7-server-ansible-<version>-rpms/Packages
 # createrepo .
 ```
 8. Copy the custom kickstart file into the /mnt/working directory
@@ -65,9 +65,13 @@ custom ISO file
 ```
 12. Using the ‘dd’ command to copy the .iso over to a usable USB device
 ```
-# dd if=htadmin.iso of=/dev/sd<usb device location> bs=4M status=progress
+# dd if=htadmin.iso of=/dev/sd<usb device location> bs=4M status=progress; sync
 ```
-13. Mount the new usb - there should be 2 partitions ex. /dev/sdc1 & /dev/sdc2
+> NOTE: You can watch the buffer get written out with the following command
+```
+# watch grep -e Dirty: -e Writeback: /proc/meminfo
+```
+13. Mount the new usb - there should be 2 partitions (ex. /dev/sdc1 & /dev/sdc2)
 14. Mount the second device (should be smaller like 8M)
 ```
 # mkdir /mnt/partition2

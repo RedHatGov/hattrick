@@ -65,7 +65,7 @@ custom ISO file
 ```
 12. Using the ‘dd’ command to copy the .iso over to a usable USB device
 ```
-# dd if=htadmin.iso of=/dev/sd<usb device location> bs=4M status=progress; sync
+# dd if=htadmin.iso of=/dev/sd<usb device location> bs=4M status=progress conv=fdatasync
 ```
 > NOTE: You can watch the buffer get written out with the following command
 ```

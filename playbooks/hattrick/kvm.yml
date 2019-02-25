@@ -3,7 +3,7 @@
   hosts: kvm
   gather_facts: no
   roles:
-    - ansible-copy-local-pub-key
+    - RedHatGov.copy_local_pub_key
 
 - name: Play to deploy kvm host
   hosts: kvm
@@ -13,11 +13,11 @@
         rhsm_consumer_name: "{{ kvm_hostname_full }}"
         rhsm_repos: "{{ kvm_repos }}"
       include_role:
-        name: ansible-rhsm
+        name: RedHatGov.rhsm
 
     - name: Deploy kvm
       include_role:
-        name: ansible-kvm
+        name: RedHatGov.kvm
 
     - name: fetch public key from KVM host for use later
       fetch:

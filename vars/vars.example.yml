@@ -100,6 +100,12 @@ idm_nics:
     gateway: "{{ networks.external.gateway }}"
     dns_server: "{{ dns_server_public }}"
     config: "--type network --source external --model virtio"
+idm_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+idm_packages:
+  - ipa-server
+  - ipa-server-dns
 idm_realm: "{{ domain | upper }}"
 idm_dm_pwd: "p@ssw0rd"
 idm_admin_pwd: "p@ssw0rd"

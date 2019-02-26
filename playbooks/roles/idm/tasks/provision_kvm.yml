@@ -10,4 +10,4 @@
     kvm_vm_os_disk_size: "{{ idm_os_disk_size }}"
     kvm_vm_nics: "{{ idm_nics }}"
   include_role:
-    name: ansible-kvm-vm
+    name: RedHatGov.kvm_vm

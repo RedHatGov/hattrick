@@ -9,6 +9,8 @@ name = "pypi"
 ansible = "==2.6.4"
 openstacksdk = "==0.14.0"
 shade = "==1.27.0"
+pyyaml = ">=4.2b1"
+requests = ">=2.20.0"
 
 [requires]
 python_version = "3.6"

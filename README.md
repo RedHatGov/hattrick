@@ -1,5 +1,4 @@
-# ht
-Project Hat Trick
+# Project Hat Trick
 
 The playbooks in this project can be used as a baseline for deploying a vast majority of Red Hat's product portfolio in a defined manner. The playbooks were originally built out to deploy on a set of field kits used by Red Hat North American Public Sector Solutions Architects.
 

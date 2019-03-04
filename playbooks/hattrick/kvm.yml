@@ -7,6 +7,7 @@
 
 - name: Play to deploy kvm host
   hosts: kvm
+  become: true
   tasks:
     - name: Register to RHSM
       vars:

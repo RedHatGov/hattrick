@@ -1,5 +1,5 @@
 ---
-- name: Create KVM IdM VM
+- name: Destroy and undefine KVM IdM VM
   vars:
     kvm_vm_hostname: "{{ idm_hostname }}"
     kvm_vm_root_pwd: "{{ idm_ssh_pwd }}"
@@ -11,3 +11,4 @@
     kvm_vm_nics: "{{ idm_nics }}"
   include_role:
     name: RedHatGov.kvm_vm
+    tasks_from: teardown_kvm_vm

@@ -1,7 +1,8 @@
 ---
 # defaults file for idm
 idm_hostname: [] #Short hostname only
-idm_root_pwd: []
+idm_ssh_user: root
+idm_ssh_pwd: p@ssw0rd
 idm_public_ip: []
 idm_base_img: []
 idm_vcpus: 1

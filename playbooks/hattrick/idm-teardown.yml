@@ -1,0 +1,9 @@
+---
+- hosts: kvm
+  tags: provision
+  become: true
+  tasks:
+    - name: Teardown IdM VM
+      include_role:
+        name: idm
+        tasks_from: teardown_kvm

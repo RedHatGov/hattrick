@@ -1,6 +1,7 @@
 ---
 - hosts: kvm
   tags: provision
+  become: true
   tasks:
     - name: Provision IdM VM
       include_role:

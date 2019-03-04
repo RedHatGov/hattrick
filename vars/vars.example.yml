@@ -91,7 +91,10 @@ idm_ssh_user: root
 idm_ssh_pwd: p@ssw0rd
 idm_public_ip: "{{ dns_server_local }}"
 idm_base_img: rhel-guest-image-7.qcow2
+idm_vcpus: 4
+idm_ram: 4096
 idm_os_disk_name: "{{ idm_hostname }}"
+idm_os_disk_size: 45G
 idm_nics:
   - name: eth0
     bootproto: static

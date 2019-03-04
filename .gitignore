@@ -13,7 +13,7 @@ vars/*
 *ifcfg*
 *.tgz
 playbooks/roles/ansible-*
-playbooks/roles/RedHatGov*
+playbooks/roles/redhatgov*
 
 ###############################################################################
 # Python

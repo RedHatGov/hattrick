@@ -1,5 +1,6 @@
 #from galaxy
-- src: RedHatGov.copy_local_pub_key
-- src: RedHatGov.rhsm
-- src: RedHatGov.kvm
-- src: RedHatGov.kvm_vm
+- src: redhatgov.copy_local_pub_key
+- src: redhatgov.rhsm
+- src: redhatgov.kvm
+- src: redhatgov.kvm_vm
+- src: redhatgov.idm

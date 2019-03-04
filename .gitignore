@@ -14,6 +14,7 @@ vars/*
 *.tgz
 playbooks/roles/ansible-*
 playbooks/roles/redhatgov*
+playbooks/roles/RedHatGov*
 
 ###############################################################################
 # Python

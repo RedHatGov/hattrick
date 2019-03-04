@@ -2,11 +2,19 @@
 - hosts: kvm
   tags: provision
   become: true
+  vars:
+    kvm_vm_hostname: "{{ idm_hostname }}"
+    kvm_vm_root_pwd: "{{ idm_ssh_pwd }}"
+    kvm_vm_base_img: "{{ idm_base_img }}"
+    kvm_vm_vcpus: "{{ idm_vcpus }}"
+    kvm_vm_ram: "{{ idm_ram }}"
+    kvm_vm_os_disk_name: "{{ idm_os_disk_name }}"
+    kvm_vm_os_disk_size: "{{ idm_os_disk_size }}"
+    kvm_vm_nics: "{{ idm_nics }}"
   tasks:
-    - name: Provision IdM VM
+    - name: Create KVM IdM VM
       include_role:
-        name: redhatgov.idm
-        tasks_from: provision_kvm
+        name: RedHatGov.kvm_vm
 
     - name: Add IdM to ansible inventory
       add_host:
@@ -30,12 +38,12 @@
       vars:
         rhsm_repos: "{{ idm_repos }}"
       include_role:
-        name: redhatgov.rhsm
+        name: RedHatGov.rhsm
       tags: install
 
     - name: Install IDM
       include_role:
-        name: redhatgov.idm
+        name: RedHatGov.idm
       tags: install
 
     - name: Configure IDM

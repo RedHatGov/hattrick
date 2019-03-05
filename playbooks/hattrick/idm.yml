@@ -33,14 +33,9 @@
         sleep: 5
 
 - hosts: idm
+  vars:
+    rhsm_repos: "{{ idm_repos }}"
   tasks:
-    - name: Register to RHSM
-      vars:
-        rhsm_repos: "{{ idm_repos }}"
-      include_role:
-        name: RedHatGov.rhsm
-      tags: install
-
     - name: Install IDM
       include_role:
         name: RedHatGov.idm
@@ -48,6 +43,6 @@
 
     - name: Configure IDM
       include_role:
-        name: idm
+        name: RedHatGov.idm
         tasks_from: post_config
       tags: post-config

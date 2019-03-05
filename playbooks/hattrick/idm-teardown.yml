@@ -1,4 +1,13 @@
 ---
+- hosts: idm
+  tags: teardown
+  become: true
+  tasks:
+    - name: Unregister IdM
+      include_role:
+        name: RedHatGov.rhsm
+        tasks_from: unregister
+
 - hosts: kvm
   tags: teardown
   become: true

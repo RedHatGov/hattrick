@@ -39,6 +39,7 @@
         name: RedHatGov.idm
       tags: install
 
+    #TODO: this second call reruns rhsm role because of dependency
     - name: Configure IDM
       include_role:
         name: RedHatGov.idm

@@ -57,7 +57,7 @@ to install the base operating system for what will become the intitial RHEL+KVM 
 2. Verify your networking is the way you expect. We recommend two bridges for the VMs. br1 for the external network and br2 for the provisioning network
 3. Run the kvm playbook from the ht directory
 ```
-# ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/kvm.yml
+$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/kvm.yml
 ```
 
 ## To Deploy the RHEL Identity Manager (IdM) on a RHEL+KVM hypervisor:
@@ -65,11 +65,11 @@ to install the base operating system for what will become the intitial RHEL+KVM 
 1. Follow the instructions above for Cloning and configuring the repository
 2. Run the IdM playbook
 ```
-# ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/idm.yml
+$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/idm.yml
 ```
 > NOTE: If you need to teardown the IdM vm, run the following playbook. This will destroy and undefine the VM that was created.
 ```
-# ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/idm-teardown.yml
+$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/idm-teardown.yml
 ```
 
 ## To Deploy the rest (to be continued):

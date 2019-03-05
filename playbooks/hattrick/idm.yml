@@ -33,8 +33,6 @@
         sleep: 5
 
 - hosts: idm
-  vars:
-    rhsm_repos: "{{ idm_repos }}"
   tasks:
     - name: Install IDM
       include_role:

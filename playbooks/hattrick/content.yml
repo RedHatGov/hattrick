@@ -36,5 +36,5 @@
   tasks:
     - name: Install and configure content server
       include_role:
-        name: content
+        name: RedHatGov.content
       tags: install, configure, registry, repos, nfs

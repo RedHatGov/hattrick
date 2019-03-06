@@ -1,5 +1,6 @@
 ---
 - hosts: kvm
+  gather_facts: no
   tags: provision
   become: true
   vars:

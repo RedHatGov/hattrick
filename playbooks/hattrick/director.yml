@@ -1,20 +1,30 @@
 ---
 - hosts: kvm
+  gather_facts: no
   tags: provision
+  become: true
+  vars:
+    kvm_vm_hostname: "{{ director_hostname }}"
+    kvm_vm_root_pwd: "{{ director_ssh_pwd }}"
+    kvm_vm_base_img: "{{ director_base_img }}"
+    kvm_vm_vcpus: "{{ director_vcpus }}"
+    kvm_vm_ram: "{{ director_ram }}"
+    kvm_vm_os_disk_name: "{{ director_os_disk_name }}"
+    kvm_vm_os_disk_size: "{{ director_os_disk_size }}"
+    kvm_vm_nics: "{{ director_nics }}"
   tasks:
-    - name: Provision Director VM
+    - name: Provision RHOSP Director VM
       include_role:
-        name: director
-        tasks_from: provision_kvm
+        name: RedHatGov.kvm_vm
 
-    - name: Add Director to ansible inventory
+    - name: Add Content to ansible inventory
       add_host:
         name: "{{ director_hostname }}"
         ansible_host: "{{ director_public_ip }}"
         rhsm_consumer_name: "{{ director_hostname }}.{{ domain }}"
       changed_when: no
 
-    - name: waiting for Director ssh to come online
+    - name: waiting for content server ssh to come online
       wait_for:
         host: "{{ director_public_ip }}"
         port: 22
@@ -26,12 +36,16 @@
 - hosts: director
   tags: install
   tasks:
-    - name: Register to RHSM
-      vars:
-        rhsm_repos: "{{ rhosp_director.repos }}"
-      include_role:
-        name: rhsm
-
     - name: Install Director
       include_role:
         name: director
+
+    - name: Configure Director
+      include_role:
+        name: director
+        tasks_from: post_config
+
+    - name: Register Overcloud Nodes
+      include_role:
+        name: director
+        tasks_from: register_overcloud_nodes

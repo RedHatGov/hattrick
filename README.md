@@ -69,7 +69,7 @@ $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattri
 ```
 > NOTE: If you need to teardown the IdM vm, run the following playbook. This will destroy and undefine the VM that was created.
 ```
-$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/idm-teardown.yml
+$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/kvm-teardown.yml --extra-vars "kvm_vm_name=idm"
 ```
 
 ## To deploy the RHEL Local Content Server (Repos, Registry, NFS) on a RHEL+KVM hypervisor
@@ -81,7 +81,7 @@ $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattri
 ```
 > NOTE: If you need to teardown the content server vm, run the following playbook. This will destroy and undefine the VM that was created.
 ```
-$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/content-teardown.yml
+$ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/kvm-teardown.yml --extra-vars "kvm_vm_name=content"
 ```
 
 ## To deploy the rest (to be continued):

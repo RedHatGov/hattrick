@@ -1,20 +1,22 @@
 ---
-- hosts: idm
-  tags: teardown
+- hosts: "{{ kvm_vm_name }}"
+  gather_facts: no
+  tags: pre-teardown
   become: true
   tasks:
-    - name: Unregister IdM
+    - name: Unregister system from RHN
       include_role:
         name: RedHatGov.rhsm
         tasks_from: unregister
 
 - hosts: kvm
+  gather_facts: no
   tags: teardown
   become: true
   tasks:
-    - name: Destroy and undefine KVM IdM VM
+    - name: Destroy and undefine KVM VM
       vars:
-        kvm_vm_hostname: "{{ idm_hostname }}"
+        kvm_vm_hostname: "{{ kvm_vm_name }}"
       include_role:
         name: RedHatGov.kvm_vm
         tasks_from: teardown_kvm_vm

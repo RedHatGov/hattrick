@@ -170,6 +170,26 @@ content_nics:
 content_rh_registry_username: "1234567|rhnserviceaccount"
 content_rh_registry_token: "...."
 
+#RHOSP Director
+director_hostname: director #Short hostname
+director_ssh_user: root
+director_ssh_pwd: p@ssw0rd
+director_public_ip: "192.168.0.5"
+director_base_img: rhel-guest-image-7.qcow2
+director_vcpus: 4
+director_ram: 16384
+director_os_disk_name: "{{ director_hostname }}"
+director_os_disk_size: 80G
+director_nics:
+  - name: eth0
+    bootproto: static
+    onboot: yes
+    ip: "{{ director_public_ip }}"
+    prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
+    gateway: "{{ networks.external.gateway }}"
+    dns_server: "{{ dns_server_public }}"
+    config: "--type bridge --source br1 --model virtio"
+
 os_auth:
   auth_url: http://openstack.example.com:5000
   username: admin

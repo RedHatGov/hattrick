@@ -1,11 +1,20 @@
 ---
 - hosts: kvm
   tags: provision
+  become: true
+  vars:
+    kvm_vm_hostname: "{{ content_hostname }}"
+    kvm_vm_root_pwd: "{{ content_ssh_pwd }}"
+    kvm_vm_base_img: "{{ content_base_img }}"
+    kvm_vm_vcpus: "{{ content_vcpus }}"
+    kvm_vm_ram: "{{ content_ram }}"
+    kvm_vm_os_disk_name: "{{ content_os_disk_name }}"
+    kvm_vm_os_disk_size: "{{ content_os_disk_size }}"
+    kvm_vm_nics: "{{ content_nics }}"
   tasks:
-    - name: Provision RH Content VM
+    - name: Provision RH content server VM
       include_role:
-        name: content
-        tasks_from: provision_kvm
+        name: RedHatGov.kvm_vm
 
     - name: Add Content to ansible inventory
       add_host:
@@ -14,7 +23,7 @@
         rhsm_consumer_name: "{{ content_hostname }}.{{ domain }}"
       changed_when: no
 
-    - name: waiting for Content ssh to come online
+    - name: waiting for content server ssh to come online
       wait_for:
         host: "{{ content_public_ip }}"
         port: 22
@@ -25,24 +34,7 @@
 
 - hosts: content
   tasks:
-    - name: Register to RHSM
-      vars:
-        rhsm_repos: "{{ content_repos }}"
+    - name: Install and configure content server
       include_role:
-        name: rhsm
-      tags: install
-
-    - name: Install and configure Repo
-      include_role:
-        name: repo
-      tags: install
-
-    - name: Install and configure Registry
-      include_role:
-        name: registry
-      tags: install
-
-    - name: Install and configure NFS
-      include_role:
-        name: nfs
-      tags: install
+        name: content
+      tags: install, configure, registry, repos, nfs

@@ -8,11 +8,12 @@ ntp_server: time.google.com
 git_repo: https://github.com/redhat-kejones/ht
 
 versions:
-  rhosp: 10
-  ceph: 2
-  satellite: 6.3
-  ocp: 3.9
+  rhosp: 13
+  ceph: 3
+  satellite: 6.4
+  ocp: 3.11
   cfme: 5.9
+  ansible: 2.7
 
 networks:
   external:
@@ -79,7 +80,7 @@ rhsm_pool: ...
 kvm_hostname_full: kvm.{{ domain }}
 kvm_public_ip: 192.168.0.3
 kvm_ssh_user: root
-kvm_ssh_pass: p@ssw0rd
+kvm_ssh_pwd: p@ssw0rd
 kvm_repos:
   - rhel-7-server-rpms
   - rhel-7-server-extras-rpms
@@ -103,7 +104,7 @@ idm_nics:
     prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
     gateway: "{{ networks.external.gateway }}"
     dns_server: "{{ dns_server_public }}"
-    config: "--type network --source external --model virtio"
+    config: "--type bridge --source br1 --model virtio"
 idm_repos:
   - rhel-7-server-rpms
   - rhel-7-server-extras-rpms
@@ -145,6 +146,29 @@ idm_dns_records:
     record_type: A
     ip_address: 192.168.1.40
     reverse_record: 40.1
+
+#Content Server (Repos, Registry, NFS)
+content_hostname: content #Short hostname
+content_ssh_user: root
+content_ssh_pwd: p@ssw0rd
+content_public_ip: "192.168.0.8"
+content_base_img: rhel-guest-image-7.qcow2
+content_vcpus: 1
+content_ram: 1024
+content_os_disk_name: "{{ content_hostname }}"
+content_os_disk_size: 110G
+content_nics:
+  - name: eth0
+    bootproto: static
+    onboot: yes
+    ip: "{{ content_public_ip }}"
+    prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
+    gateway: "{{ networks.external.gateway }}"
+    dns_server: "{{ dns_server_public }}"
+    config: "--type bridge --source br1 --model virtio"
+#NOTE: Create/Get username/token from https://access.redhat.com/terms-based-registry/
+content_rh_registry_username: "1234567|rhnserviceaccount"
+content_rh_registry_token: "...."
 
 os_auth:
   auth_url: http://openstack.example.com:5000

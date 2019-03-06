@@ -1,0 +1,20 @@
+---
+- hosts: content
+  tags: teardown
+  become: true
+  tasks:
+    - name: Unregister content server
+      include_role:
+        name: RedHatGov.rhsm
+        tasks_from: unregister
+
+- hosts: kvm
+  tags: teardown
+  become: true
+  tasks:
+    - name: Destroy and undefine KVM content server VM
+      vars:
+        kvm_vm_hostname: "{{ content_hostname }}"
+      include_role:
+        name: RedHatGov.kvm_vm
+        tasks_from: teardown_kvm_vm

@@ -50,7 +50,7 @@ $ vi vars/vars.yml
 ```
 > NOTE: The vars example file only exposes the variables you must care about. If you need to dig deeper you'll have to dig into the roles.
 
-## To Deploy the initial RHEL+KVM admin host
+## To deploy the initial RHEL+KVM admin host
 
 1. Follow the [instructions to create a bootable custom ISO](https://github.com/redhat-kejones/ht/tree/master/admin-iso)
 to install the base operating system for what will become the intitial RHEL+KVM utility server
@@ -60,7 +60,7 @@ to install the base operating system for what will become the intitial RHEL+KVM 
 $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/kvm.yml
 ```
 
-## To Deploy the RHEL Identity Manager (IdM) on a RHEL+KVM hypervisor
+## To deploy the RHEL Identity Manager (IdM) on a RHEL+KVM hypervisor
 
 1. Follow the instructions above for Cloning and configuring the repository
 2. Run the IdM playbook
@@ -72,7 +72,7 @@ $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattri
 $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/idm-teardown.yml
 ```
 
-## To Deploy the RHEL Local Content Server (Repos, Registry, NFS) on a RHEL+KVM hypervisor
+## To deploy the RHEL Local Content Server (Repos, Registry, NFS) on a RHEL+KVM hypervisor
 
 1. Follow the instructions above for Cloning and configuring the repository
 2. Run the content playbook
@@ -84,6 +84,6 @@ $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattri
 $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/content-teardown.yml
 ```
 
-## To Deploy the rest (to be continued):
+## To deploy the rest (to be continued):
 
 > The remainder of this readme will be completed as the capabilities come into the repo

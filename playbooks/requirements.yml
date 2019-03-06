@@ -4,3 +4,4 @@
 - src: RedHatGov.kvm
 - src: RedHatGov.kvm_vm
 - src: RedHatGov.idm
+- src: RedHatGov.content

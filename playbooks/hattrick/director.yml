@@ -36,16 +36,27 @@
 - hosts: director
   tags: install
   tasks:
+    - name: Register to RHSM
+      vars:
+        rhsm_consumer_name: "{{ director_hostname }}.{{ domain }}"
+        rhsm_repos: "{{ director_repos }}"
+      include_role:
+        name: RedHatGov.rhsm
+      tags: install
+
     - name: Install Director
       include_role:
         name: director
+      tags: install
 
     - name: Configure Director
       include_role:
         name: director
         tasks_from: post_config
+      tags: configure
 
     - name: Register Overcloud Nodes
       include_role:
         name: director
         tasks_from: register_overcloud_nodes
+      tags: register

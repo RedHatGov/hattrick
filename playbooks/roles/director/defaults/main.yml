@@ -1,2 +1,81 @@
 ---
 # defaults file for director
+domain: example.com
+dns_server_local: []
+ntp_server: time.nist.gov
+versions: []
+networks: []
+
+director_hostname: director
+director_external_ip: []
+director_poweroff: true
+director_bootdev: network
+director_validation_errors: []
+# stack user gets created and will be used for all RHOSP actions on undercloud
+director_stack_user_pwd: []
+director_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-rh-common-rpms
+  - rhel-ha-for-rhel-7-server-rpms
+  - rhel-7-server-openstack-13-rpms
+  - rhel-7-server-satellite-tools-6.3-rpms
+  - rhel-7-server-rhceph-3-osd-rpms
+  - rhel-7-server-rhceph-3-mon-rpms
+  - rhel-7-server-rhceph-3-tools-rpms
+director_packages:
+  - 'screen'
+  - 'wget'
+  - 'vim'
+  - 'tree'
+  - 'yum-utils'
+  - 'facter'
+  - 'crudini'
+  - 'git'
+  - 'libguestfs-tools-c'
+  - 'python-pyghmi'
+  - 'python-tripleoclient'
+  - 'rhosp-director-images'
+  - 'rhosp-director-images-ipa'
+director_optional_docker_services: []
+director_ceph_enabled: true
+director_ceph_namespace: registry.access.redhat.com/rhceph
+director_ceph_image: rhceph-3-rhel7
+director_ceph_tag: "{version}-{release}"
+director_ceph_containerized: true
+# All variables for undercloud.conf
+director_cloud_domain: "{{ domain }}"
+director_ntp_servers: "{{ ntp_server }}"
+# Network interface on the Undercloud that will be handling the PXE
+# boots and DHCP for Overcloud instances
+director_provisioning_interface: eth0
+director_provisioning_interface_mtu: 1500
+# IP information for the interface on the Undercloud that will be
+# handling the PXE boots and DHCP for Overcloud instances.  The IP
+# portion of the value will be assigned to the network interface
+# defined by local_interface, with the netmask defined by the prefix
+# portion of the value
+director_provisioning_ip: [] #NOTE: This should be in cidr notation (192.168.2.5/24)
+# Network CIDR for the Neutron-managed network for Overcloud
+# instances. This should be the subnet used for PXE booting
+director_provisioning_network_cidr: []
+# Network gateway for the Neutron-managed network for Overcloud
+# instances. This should match the local_ip above when using masquerading
+director_provisioning_network_gateway: []
+# Virtual IP address to use for the admin endpoints of Undercloud services.
+director_admin_apis_vip: []
+# Temporary IP range that will be given to nodes during the discovery
+# process.  Should not overlap with the range defined by dhcp_start
+# and dhcp_end, but should be in the same network
+director_inspection_dhcp_start: []
+director_inspection_dhcp_end: []
+# Start of DHCP allocation range for PXE and DHCP of Overcloud instances
+director_deploy_dhcp_start: []
+# End of DHCP allocation range for PXE and DHCP of Overcloud instances
+director_deploy_dhcp_end: []
+# Defines whether to wipe the hard drive of overcloud nodes between
+# deployments and after the introspection
+director_clean_nodes: true
+# Set admin password for undercloud
+director_admin_password: []
+director_overcloud_nodes: []

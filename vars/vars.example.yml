@@ -10,7 +10,7 @@ git_repo: https://github.com/redhat-kejones/ht
 versions:
   rhosp: 13
   ceph: 3
-  satellite: 6.4
+  satellite: 6.3
   ocp: 3.11
   cfme: 5.9
   ansible: 2.7
@@ -32,8 +32,12 @@ networks:
     defroute: false
     gateway: 192.168.2.5
     vlan: 2
-    dhcpStart: 192.168.2.70
-    dhcpEnd: 192.168.2.99
+    introspectionDhcpStart: 192.168.2.30
+    introspectionDhcpEnd: 192.168.2.49
+    deployDhcpStart: 192.168.2.50
+    deployDhcpEnd: 192.168.2.69
+    providerDhcpStart: 192.168.2.70
+    providerDhcpEnd: 192.168.2.99
   internal_api:
     name: internal_api
     cidr: 192.168.100.0/24
@@ -189,6 +193,63 @@ director_nics:
     gateway: "{{ networks.external.gateway }}"
     dns_server: "{{ dns_server_public }}"
     config: "--type bridge --source br1 --model virtio"
+director_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-rh-common-rpms
+  - rhel-ha-for-rhel-7-server-rpms
+  - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+  - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+  - rhel-7-server-rhceph-{{ versions.ceph }}-osd-rpms
+  - rhel-7-server-rhceph-{{ versions.ceph }}-mon-rpms
+  - rhel-7-server-rhceph-{{ versions.ceph }}-tools-rpms
+director_optional_docker_services:
+  - /usr/share/openstack-tripleo-heat-templates/environments/services/barbican.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/barbican-backend-simple-crypto.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/services/octavia.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/services/sahara.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-rgw.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml
+# All variables for undercloud.conf
+director_provisioning_ip: 192.168.2.5/24 #NOTE: prefix at end
+director_admin_apis_vip: 192.168.2.6
+director_provisioning_network_cidr: "{{ networks.provisioning.cidr }}"
+director_provisioning_network_gateway: "{{ networks.provisioning.gateway }}"
+director_inspection_dhcp_start: "{{ networks.provisioning.introspectionDhcpStart }}"
+director_inspection_dhcp_end: "{{ networks.provisioning.introspectionDhcpEnd }}"
+director_deploy_dhcp_start: "{{ networks.provisioning.deployDhcpStart }}"
+director_deploy_dhcp_end: "{{ networks.provisioning.deployDhcpStart }}"
+director_admin_password: "redhat"
+director_overcloud_nodes:
+  - name: node5
+    profile: control
+    pm_addr: "192.168.2.205"
+    pm_user: "admin"
+    pm_pwd: "admin"
+    pm_driver: "pxe_ipmitool"
+    root_device: "/dev/nvme0n1"
+  - name: node6
+    profile: compute
+    pm_addr: "192.168.2.206"
+    pm_user: "admin"
+    pm_pwd: "admin"
+    pm_driver: "pxe_ipmitool"
+    root_device: "/dev/nvme0n1"
+  - name: node7
+    profile: control
+    pm_addr: "192.168.2.207"
+    pm_user: "admin"
+    pm_pwd: "admin"
+    pm_driver: "pxe_ipmitool"
+    root_device: "/dev/nvme0n1"
+  - name: node8
+    profile: control
+    pm_addr: "192.168.2.208"
+    pm_user: "admin"
+    pm_pwd: "admin"
+    pm_driver: "pxe_ipmitool"
+    root_device: "/dev/nvme0n1"
 
 os_auth:
   auth_url: http://openstack.example.com:5000

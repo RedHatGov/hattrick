@@ -16,6 +16,7 @@
     - name: Create KVM IdM VM
       include_role:
         name: RedHatGov.kvm_vm
+      tags: provision
 
     - name: Add IdM to ansible inventory
       add_host:
@@ -23,6 +24,7 @@
         ansible_host: "{{ idm_public_ip }}"
         rhsm_consumer_name: "{{ idm_hostname }}.{{ domain }}"
       changed_when: no
+      tags: provision
 
     - name: waiting for IDM ssh to come online
       wait_for:
@@ -32,8 +34,10 @@
         delay: 10
         connect_timeout: 300
         sleep: 5
+      tags: provision
 
 - hosts: idm
+  become: true
   tasks:
     - name: Install IDM
       include_role:
@@ -45,4 +49,4 @@
       include_role:
         name: RedHatGov.idm
         tasks_from: post_config
-      tags: post-config
+      tags: configure

@@ -1,0 +1,20 @@
+parameter_defaults:
+  ExtraConfig:
+    nova::compute::reserved_host_memory: 22000
+    nova::cpu_allocation_ratio: 8.125
+
+#./compute.py 128 16 3 10 .1
+#Inputs:
+#- Total host RAM in GB: 128
+#- Total host cores: 16
+#- Ceph OSDs per host: 3
+#- Average guest memory size in GB: 10
+#- Average guest CPU utilization: 10%
+#
+#Results:
+#- number of guests allowed based on memory = 11
+#- number of guest vCPUs allowed = 130
+#- nova.conf reserved_host_memory = 14500 MB
+#- nova.conf cpu_allocation_ratio = 8.125000
+#
+#Compare "guest vCPUs allowed" to "guests allowed based on memory" for actual guest count

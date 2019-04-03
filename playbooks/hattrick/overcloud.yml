@@ -1,0 +1,19 @@
+---
+- hosts: director
+  tasks:
+    - name: configure overcloud templates
+      include_role:
+        name: overcloud
+        tasks_from: pre_config
+      tags: pre-overcloud
+
+    - name: deploy overcloud
+      include_role:
+        name: overcloud
+      tags: deploy-overcloud
+
+    - name: post configurations for overcloud
+      include_role:
+        name: overcloud
+        tasks_from: post_config
+      tags: post-overcloud

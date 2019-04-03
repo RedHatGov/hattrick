@@ -1,0 +1,2 @@
+resource_registry:
+  OS::TripleO::ControllerExtraConfigPost: /home/stack/templates/octavia-config.yaml

@@ -1,0 +1,19 @@
+heat_template_version: 2014-10-16
+
+resources:
+  userdata:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: repo_config}
+
+  repo_config:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        sleep 10
+        echo "redhat" | passwd root --stdin
+outputs:
+  OS::stack_id:
+    value: {get_resource: userdata}

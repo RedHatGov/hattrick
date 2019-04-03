@@ -1,0 +1,16 @@
+parameter_defaults:
+  ControllerCount: {{ overcloud_controller_scale }}
+  OvercloudControllerFlavor: control
+  ComputeCount: {{ overcloud_compute_scale }}
+  OvercloudComputeFlavor: compute
+  CephStorageCount: {{ overcloud_ceph_storage_scale }}
+  OvercloudCephStorageFlavor: ceph-storage
+  #Other Params
+  NtpServer: {{ ntp_server }}
+  AdminPassword: {{ overcloud_admin_pwd }}
+  BarbicanSimpleCryptoGlobalDefault: true
+  CeilometerStoreEvents: true
+  CephAnsiblePlaybookVerbosity: 0
+  ExtraConfig:
+    nova::compute::reserved_host_memory: 4096
+    nova::cpu_allocation_ratio: 0

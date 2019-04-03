@@ -1,0 +1,21 @@
+heat_template_version: 2014-10-16
+
+description: >
+ Configure Octavia to prevent killing controllers
+parameters:
+  servers:
+    type: json
+
+resources:
+  PostConfig:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      config: {get_file: /home/stack/templates/octavia-config.sh}
+
+  PostConfigDeployments:
+    type: OS::Heat::SoftwareDeployments
+    properties:
+      servers: {get_param: servers}
+      config: {get_resource: PostConfig}
+      actions: ['CREATE', 'UPDATE']

@@ -1,0 +1,51 @@
+parameter_defaults:
+  CinderBackupBackend: ceph
+  CephPoolDefaultSize: 2
+  CephConfigOverrides:
+    journal_size: 5120
+    max_open_files: 131072
+    osd_pool_default_size: 2
+    osd_pool_default_min_size: 2
+    osd_pool_default_pg_num: 16
+    osd_pool_default_pgp_num: 16
+    osd_recovery_op_priority: 2
+    osd_recovery_max_active: 2
+    osd_max_backfills: 1
+    ### Added because of https://bugzilla.redhat.com/show_bug.cgi?id=1477348
+    osd_mkfs_options_xfs: '-f -d agcount=24'
+  CephPools:
+    - name: volumes
+      pg_num: 512
+      application: rbd
+    - name: vms
+      pg_num: 128
+      application: rbd
+    - name: images
+      pg_num: 64
+      application: rbd
+    - name: backups
+      pg_num: 128
+      application: rbd
+    - name: metrics
+      pg_num: 128
+      application: openstack_gnocchi
+    - name: default.rgw.buckets.index
+      pg_num: 32
+      application: rgw
+    - name: default.rgw.buckets.data
+      pg_num: 256
+      application: rgw
+  CephAnsibleDisksConfig:
+    dmcrypt: false
+    devices:
+      - /dev/sda
+      - /dev/sdb
+      - /dev/sdc
+      - /dev/sdd
+    osd_scenario: collocated
+
+#    osd_scenario: non-collocated
+#    dedicated_devices:
+#      - /dev/nvme0n1
+#      - /dev/nvme0n1
+#      - /dev/nvme0n1

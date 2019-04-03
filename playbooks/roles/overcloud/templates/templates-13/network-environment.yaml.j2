@@ -1,0 +1,60 @@
+#This file is an example of an environment file for defining the isolated
+#networks and related parameters.
+resource_registry:
+  # Network Interface templates to use (these files must exist)
+  OS::TripleO::Controller::Net::SoftwareConfig:
+    /home/stack/templates/nic-configs/controller.yaml
+  OS::TripleO::Compute::Net::SoftwareConfig:
+    /home/stack/templates/nic-configs/compute.yaml
+  #OS::TripleO::CephStorage::Net::SoftwareConfig:
+  #  /home/stack/templates/nic-configs/ceph-storage.yaml
+
+parameter_defaults:
+  # This section is where deployment-specific configuration is done
+  # CIDR subnet mask length for provisioning network
+  ControlPlaneSubnetCidr: '{{ networks.provisioning.cidr | ipaddr('prefix') }}'
+  # Gateway router for the provisioning network (or Undercloud IP)
+  ControlPlaneDefaultRoute: {{ networks.provisioning.gateway }}
+  EC2MetadataIp: {{ director_provisioning_ip | ipaddr('address') }}  # Generally the IP of the Undercloud
+  # Customize the IP subnets to match the local environment
+  InternalApiNetCidr: {{ networks.internal_api.cidr }}
+  StorageNetCidr: {{ networks.storage.cidr }}
+  StorageMgmtNetCidr: {{ networks.storage_mgmt.cidr }}
+  TenantNetCidr: {{ networks.tenant.cidr }}
+  ExternalNetCidr: {{ networks.external.cidr }}
+  # Customize the VLAN IDs to match the local environment
+  InternalApiNetworkVlanID: {{ networks.internal_api.vlan }}
+  StorageNetworkVlanID: {{ networks.storage.vlan }}
+  StorageMgmtNetworkVlanID: {{ networks.storage_mgmt.vlan }}
+  TenantNetworkVlanID: {{ networks.tenant.vlan }}
+  ExternalNetworkVlanID: {{ networks.external.vlan }}
+  # Customize the IP ranges on each network to use for static IPs and VIPs
+  InternalApiAllocationPools: [{'start': '{{ networks.internal_api.dhcpStart }}', 'end': '{{ networks.internal_api.dhcpEnd }}'}]
+  StorageAllocationPools: [{'start': '{{ networks.storage.dhcpStart }}', 'end': '{{ networks.storage.dhcpEnd }}'}]
+  StorageMgmtAllocationPools: [{'start': '{{ networks.storage_mgmt.dhcpStart }}', 'end': '{{ networks.storage_mgmt.dhcpEnd }}'}]
+  TenantAllocationPools: [{'start': '{{ networks.tenant.dhcpStart }}', 'end': '{{ networks.tenant.dhcpEnd }}'}]
+  # Leave room if the external network is also used for floating IPs
+  ExternalAllocationPools: [{'start': '{{ networks.external.dhcpStart }}', 'end': '{{ networks.external.dhcpEnd }}'}]
+  # Gateway router for the external network
+  ExternalInterfaceDefaultRoute: {{ networks.external.gateway }}
+  PublicVirtualFixedIPs: [{'ip_address':'{{ overcloud_public_ip }}'}]
+  # Uncomment if using the Management Network (see network-management.yaml)
+  # ManagementNetCidr: 10.0.1.0/24
+  # ManagementAllocationPools: [{'start': '10.0.1.10', 'end', '10.0.1.50'}]
+  # Use either this parameter or ControlPlaneDefaultRoute in the NIC templates
+  # ManagementInterfaceDefaultRoute: 10.0.1.1
+  # Set to empty string to enable multiple external networks or VLANs
+  NeutronExternalNetworkBridge: "''"
+  # The tunnel type for the tenant network (vxlan or gre). Set to '' to disable tunneling.
+  NeutronTunnelTypes: 'vxlan'
+  NeutronBridgeMappings: 'datacentre:br-ex,prov:br-prov'
+  #NeutronBridgeMappings: 'datacentre:br-ex'
+  NeutronNetworkVLANRanges: 'datacentre:1:4000,prov:1:4000'
+  #NeutronNetworkVLANRanges: 'datacentre:1:4000'
+  NeutronFlatNetworks: 'datacentre,prov'
+  #NeutronFlatNetworks: 'datacentre'
+  NeutronGlobalPhysnetMtu: 8946
+  # Customize bonding options, e.g. "mode=4 lacp_rate=1 updelay=1000 miimon=100"
+  #BondInterfaceOvsOptions: "bond_mode=balance-slb"
+  BondInterfaceOvsOptions: "mode=4 lacp_rate=1 miimon=100"
+  #NetworkDeploymentActions: ['CREATE','UPDATE']

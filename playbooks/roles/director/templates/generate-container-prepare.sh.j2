@@ -2,17 +2,17 @@
 
 openstack overcloud container image prepare \
   --namespace=registry.access.redhat.com/rhosp{{ versions.rhosp }} \
-  --push-destination={{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787 \
+  --push-destination={{ director_provisioning_ip | ipaddr('address') }}:8787 \
   --prefix=openstack- \
-{% for services in rhosp_director.optional_docker_services %}
+{% for services in director_optional_docker_services %}
   -e {{ services }} \
 {% endfor %}
-{% if rhosp_director.ceph_enabled | bool %}
-{% if rhosp_director.ceph_namespace != None %}
-  --set ceph_namespace={{ rhosp_director.ceph_namespace }} \
+{% if director_ceph_enabled | bool %}
+{% if director_ceph_namespace != None %}
+  --set ceph_namespace={{ director_ceph_namespace }} \
 {% endif %}
-{% if rhosp_director.ceph_image != None %}
-  --set ceph_image={{ rhosp_director.ceph_image }} \
+{% if director_ceph_image != None %}
+  --set ceph_image={{ director_ceph_image }} \
 {% endif %}
 {% endif %}
   --tag-from-label {version}-{release} \

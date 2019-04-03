@@ -1,0 +1,3 @@
+parameter_defaults:
+  ControllerExtraConfig:
+    keystone::token_provider: 'fernet'

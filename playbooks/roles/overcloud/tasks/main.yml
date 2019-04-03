@@ -1,2 +1,12 @@
 ---
 # tasks file for overcloud
+- name: deploy RHOSP overcloud
+  become: yes
+  become_user: stack
+  shell: |
+    /home/stack/deploy.sh > /home/stack/overcloud-deploy.log 2>&1
+  args:
+    chdir: /home/stack
+  #async: 3660
+  #poll: 60
+  tags: deploy-overcloud

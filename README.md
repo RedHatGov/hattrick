@@ -50,6 +50,11 @@ $ vi vars/vars.yml
 ```
 > NOTE: The vars example file only exposes the variables you must care about. If you need to dig deeper you'll have to dig into the roles.
 
+3. Install the required roles from Ansible Galaxy
+```
+$ ansible-galaxy install -r playbooks/requirements.yml
+``` 
+
 ## To deploy the initial RHEL+KVM admin host
 
 1. Follow the [instructions to create a bootable custom ISO](https://github.com/redhat-kejones/ht/tree/master/admin-iso)

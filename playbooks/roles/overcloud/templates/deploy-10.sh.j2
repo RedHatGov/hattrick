@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+cd ~
+source ~/stackrc
+
+#  -e /home/stack/templates/disable-stigged-services.yaml \
+#  -e /home/stack/templates/post-deploy-stig.yaml \
+
+openstack overcloud deploy --templates \
+  -r /home/stack/templates/roles_data.yaml \
+  -e /home/stack/templates/timezone.yaml \
+  -e /home/stack/templates/cloudname.yaml \
+  -e /home/stack/templates/ceilometer.yaml \
+  -e /home/stack/templates/fernet.yaml \
+  -e /usr/share/openstack-tripleo-heat-templates/environments/services/sahara.yaml \
+  -e /usr/share/openstack-tripleo-heat-templates/environments/ceph-radosgw.yaml \
+  -e /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml \
+  -e /home/stack/templates/storage-environment.yaml \
+  -e /home/stack/templates/network-isolation.yaml \
+  -e /home/stack/templates/network-environment.yaml \
+  -e /home/stack/templates/compute.yaml \
+  -e /home/stack/templates/nested-virt-post-deploy.yaml \
+  --control-flavor control \
+  --compute-flavor compute \
+  --ceph-storage-flavor ceph-storage \
+  --control-scale {{ rhosp_overcloud.controller_scale }} \
+  --compute-scale {{ rhosp_overcloud.compute_scale }} \
+  --ceph-storage-scale {{ rhosp_overcloud.ceph_storage_scale }} \
+  --ntp-server {{ ntp_server }} \
+  --timeout {{ rhosp_overcloud.timeout }}

@@ -10,13 +10,9 @@ all:
       ansible_ssh_user: "{{ kvm_ssh_user }}"
       ansible_ssh_pass: "{{ kvm_ssh_pwd }}"
     idm:
-      #ansible_host: "{{ idm_public_ip }}:31938"
-      ansible_host: "10.100.1.28"
-      ansible_port: "31938"
-      #ansible_ssh_user: "{{ idm_ssh_user }}"
-      ansible_ssh_user: "cloud-user"
-      #ansible_ssh_pass: "{{ idm_ssh_pwd }}"
-      ansible_ssh_pass: "redhat"
+      ansible_host: "{{ idm_public_ip }}"
+      ansible_ssh_user: "{{ idm_ssh_user }}"
+      ansible_ssh_pass: "{{ idm_ssh_pwd }}"
     content:
       ansible_host: "{{ content_public_ip }}"
       ansible_ssh_user: "{{ content_ssh_user }}"

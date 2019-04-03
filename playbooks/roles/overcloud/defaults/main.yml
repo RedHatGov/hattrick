@@ -1,2 +1,93 @@
 ---
 # defaults file for overcloud
+domain: example.com
+dns_server_local: 1.1.1.1
+ntp_server: time.nist.gov
+versions:
+  rhosp: 13
+  ceph: 3
+  satellite: 6.3
+  ocp: 3.11
+  cfme: 5.9
+  ansible: 2.6
+networks:
+  external:
+    name: external
+    cidr: 192.168.0.0/23
+    defroute: true
+    gateway: 192.168.0.1
+    vlan: 1
+    dhcpStart: 192.168.1.41
+    dhcpEnd: 192.168.1.69
+    fipStart: 192.168.1.70
+    fipEnd: 192.168.1.199
+  provisioning:
+    name: provisioning
+    cidr: 192.168.2.0/24
+    defroute: false
+    gateway: 192.168.2.5
+    vlan: 2
+    introspectionDhcpStart: 192.168.2.30
+    introspectionDhcpEnd: 192.168.2.49
+    deployDhcpStart: 192.168.2.50
+    deployDhcpEnd: 192.168.2.69
+    providerDhcpStart: 192.168.2.70
+    providerDhcpEnd: 192.168.2.99
+  internal_api:
+    name: internal_api
+    cidr: 192.168.100.0/24
+    defroute: false
+    vlan: 900
+    dhcpStart: 192.168.100.40
+    dhcpEnd: 192.168.100.250
+  tenant:
+    name: tenant
+    cidr: 192.168.101.0/24
+    defroute: false
+    vlan: 901
+    dhcpStart: 192.168.101.40
+    dhcpEnd: 192.168.101.250
+  storage:
+    name: storage
+    cidr: 192.168.102.0/24
+    defroute: false
+    vlan: 902
+    dhcpStart: 192.168.102.40
+    dhcpEnd: 192.168.102.250
+  storage_mgmt:
+    name: storage_mgmt
+    cidr: 192.168.103.0/24
+    defroute: false
+    vlan: 903
+    dhcpStart: 192.168.103.40
+    dhcpEnd: 192.168.103.250
+  provider:
+    name: provider
+    cidr: 192.168.104.0/24
+    defroute: false
+    gateway: 192.168.104.1
+    vlan: 904
+    dhcpStart: 192.168.104.40
+    dhcpEnd: 192.168.104.250
+director_provisioning_ip: 192.168.2.5
+director_optional_docker_services:
+  - /usr/share/openstack-tripleo-heat-templates/environments/services/barbican.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/barbican-backend-simple-crypto.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/services/octavia.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/services/sahara.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-rgw.yaml
+  - /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml
+
+#RHOSP overcloud vars
+overcloud_timezone: "US/Eastern"
+overcloud_timeout: 120
+overcloud_cloud_name: openstack
+overcloud_public_ip: 192.168.1.40
+overcloud_admin_pwd: p@ssw0rd
+overcloud_controller_scale: 1
+overcloud_compute_scale: 1
+overcloud_ceph_storage_scale: 0
+overcloud_ceph_disk_layout: []
+overcloud_operator_pub_key: []
+overcloud_operator_private_cidr: '192.0.2.0/24'

@@ -1,0 +1,11 @@
+############################################################
+# We don't want tripleo tinkering with our hardened image, #
+# so we disable puppet from changing these parameters      #
+############################################################
+resource_registry:
+  OS::TripleO::Services::Sshd: OS::Heat::None
+  OS::TripleO::Services::AuditD: OS::Heat::None
+
+parameter_defaults:
+  SnmpdReadonlyUserName: Redhat1993
+  SnmpdReadonlyUserPassword: Redhat1993

@@ -1,0 +1,93 @@
+- name: copy deploy.sh script
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/deploy-{{ versions.rhosp }}.sh.j2"
+    dest: /home/stack/deploy.sh
+    owner: stack
+    group: stack
+    mode: 0775
+  tags: pre-overcloud
+
+- name: copy director templates
+  become: yes
+  become_user: stack
+  copy:
+    src: "files/templates-{{ versions.rhosp }}/"
+    dest: /home/stack/templates
+    owner: stack
+    group: stack
+  tags: pre-overcloud
+
+- name: copy node-info.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/node-info.yaml.j2"
+    dest: /home/stack/templates/node-info.yaml
+    owner: stack
+    group: stack
+  when: versions.rhosp == 13
+  tags: pre-overcloud
+
+- name: copy cloudname.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/cloudname.yaml.j2"
+    dest: /home/stack/templates/cloudname.yaml
+    owner: stack
+    group: stack
+  tags: pre-overcloud
+
+- name: copy network_data.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/network_data.yaml.j2"
+    dest: /home/stack/templates/network_data.yaml
+    owner: stack
+    group: stack
+  tags: pre-overcloud
+
+- name: copy network-environment.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/network-environment.yaml.j2"
+    dest: /home/stack/templates/network-environment.yaml
+    owner: stack
+    group: stack
+  tags: pre-overcloud
+
+- name: copy storage-environment.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/storage-environment.yaml.j2"
+    dest: /home/stack/templates/storage-environment.yaml
+    owner: stack
+    group: stack
+  when: versions.rhosp == 10
+  tags: pre-overcloud
+
+- name: copy ceph-environment.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/ceph-environment.yaml.j2"
+    dest: /home/stack/templates/ceph-environment.yaml
+    owner: stack
+    group: stack
+  when: versions.rhosp == 13
+  tags: pre-overcloud
+
+- name: copy timezone.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/timezone.yaml.j2"
+    dest: /home/stack/templates/timezone.yaml
+    owner: stack
+    group: stack
+  tags: pre-overcloud

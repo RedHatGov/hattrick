@@ -1,0 +1,24 @@
+heat_template_version: 2014-10-16
+
+parameters:
+  servers:
+    type: json
+
+resources:
+
+  ExtraConfig:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      inputs:
+        - name: OSD_NUMA_INTERFACE
+      config: {get_file: numa-systemd-osd.sh}
+
+  ExtraDeployments:
+    type: OS::Heat::SoftwareDeployments
+    properties:
+      servers: {get_param: servers}
+      config: {get_resource: ExtraConfig}
+      input_values:
+        OSD_NUMA_INTERFACE: 'ens6f0'
+      actions: ['CREATE']

@@ -1,0 +1,22 @@
+heat_template_version: newton
+
+parameters:
+  servers:
+    type: json
+
+resources:
+
+  ExtraConfig:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      config: |
+          #!/bin/sh
+          chmod 0600 /etc/ssh/ssh_host*key
+          sed -i "s/public/Redhat1993/g" /etc/snmp/snmpd.conf
+  ExtraDeployments:
+    type: OS::Heat::SoftwareDeploymentGroup
+    properties:
+      servers:  {get_param: servers}
+      config: {get_resource: ExtraConfig}
+      actions: ['CREATE'] # Only do this on CREATE

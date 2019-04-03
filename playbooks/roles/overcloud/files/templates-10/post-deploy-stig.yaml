@@ -1,0 +1,2 @@
+resource_registry:
+    OS::TripleO::NodeExtraConfigPost: /home/stack/templates/extraconfig/post-deploy/stig.yaml

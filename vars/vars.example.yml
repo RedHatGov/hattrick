@@ -253,8 +253,23 @@ director_overcloud_nodes:
 
 overcloud_public_ip: 192.168.1.40
 overcloud_admin_pwd: p@ssw0rd
+overcloud_user: operator
+overcloud_pwd: p@ssw0rd
 overcloud_ceph_disk_layout: ""
 overcloud_operator_pub_key: "ssh-rsa ..."
+overcloud_guest_images:
+  - name: cirros
+    min_disk: 10
+    min_ram: 64
+    qcow_loc: guest_images/cirros-0.4.0-x86_64-disk.img
+  - name: rhel75
+    min_disk: 10
+    min_ram: 1024
+    qcow_loc: guest_images/rhel-server-7.5-x86_64-kvm.qcow2
+  - name: cf47
+    min_disk: 40
+    min_ram: 12288
+    qcow_loc: guest_images/cfme-rhos-5.9.7.2-1.x86_64.qcow2
 
 os_auth:
   auth_url: http://openstack.example.com:5000

@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
 #Parameters
-user={{ vault_osp_user }}
-password={{ vault_osp_pwd }}
+user={{ overcloud_user }}
+password={{ overcloud_pwd }}
 email=operator@redhat.com
 tenant=operators
 externalNetwork=public
@@ -13,10 +13,10 @@ externalDns={{ dns_server_local }}
 externalFipStart={{ networks.external.fipStart }}
 externalFipEnd={{ networks.external.fipEnd }}
 tenantNetwork=private
-tenantCidr='{{ rhosp_overcloud.operator_private_cidr }}'
+tenantCidr='{{ overcloud_operator_private_cidr }}'
 keypairName=operator
 #TODO: need to pull this from the kvm node
-keypairPubkey="{{ rhosp_overcloud.operator_pub_key }}"
+keypairPubkey="{{ overcloud_operator_pub_key }}"
 
 unset OS_PROJECT_NAME
 unset OS_TENANT_NAME
@@ -84,7 +84,7 @@ neutron subnet-create $tenantNetwork $tenantCidr --name ${tenantNetwork}-sub --d
 #Create provider networks
 #Provisioning
 neutron net-create {{ networks.provisioning.name }} --provider:network_type flat  --provider:physical_network prov
-neutron subnet-create {{ networks.provisioning.name }} {{ networks.provisioning.cidr }} --name {{ networks.provisioning.name }}-sub --allocation-pool=start={{ networks.provisioning.dhcpStart }},end={{ networks.provisioning.dhcpEnd }} --no-gateway
+neutron subnet-create {{ networks.provisioning.name }} {{ networks.provisioning.cidr }} --name {{ networks.provisioning.name }}-sub --allocation-pool=start={{ networks.provisioning.providerDhcpStart }},end={{ networks.provisioning.providerDhcpEnd }} --no-gateway
 
 #provider
 neutron net-create {{ networks.provider.name }} --provider:network_type vlan --provider:segmentation_id {{ networks.provider.vlan }}  --provider:physical_network datacentre
@@ -98,6 +98,6 @@ neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 neutron router-gateway-set router-$externalNetwork $externalNetwork
 
 # uploading of images into osp
-{% for images in rhosp_guest_images %}
+{% for images in overcloud_guest_images %}
 glance image-create --name {{ images.name }} --disk-format qcow2 --min-disk {{ images.min_disk }} --min-ram {{ images.min_ram }} --container-format bare --visibility public --progress --file ./{{ images.qcow_loc }}
 {% endfor %}

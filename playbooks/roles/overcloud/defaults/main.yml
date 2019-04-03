@@ -84,6 +84,8 @@ overcloud_timezone: "US/Eastern"
 overcloud_timeout: 120
 overcloud_cloud_name: openstack
 overcloud_public_ip: 192.168.1.40
+overcloud_user: operator
+overcloud_pwd: p@ssw0rd
 overcloud_admin_pwd: p@ssw0rd
 overcloud_controller_scale: 1
 overcloud_compute_scale: 1
@@ -91,3 +93,4 @@ overcloud_ceph_storage_scale: 0
 overcloud_ceph_disk_layout: []
 overcloud_operator_pub_key: []
 overcloud_operator_private_cidr: '192.0.2.0/24'
+overcloud_guest_images: []

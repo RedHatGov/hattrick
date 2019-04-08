@@ -33,18 +33,18 @@ VMs:
 You need to configure an ansible host to execute these playbooks
 - Ansible >= 2.6
 - Git
-- Python VirtualEnv
+- pip and pipenv
 - screen or tmux (optional and your preference)
 
 ## Clone and configure the repository
 
 1. Clone the Project Hattrick repository
 ```
-$ git clone https://github.com/redhat-kejones/ht.git
+$ git clone https://github.com/RedHatGov/hattrick.git
 ```
 2. Setup your vars file
 ```
-$ cd ht/
+$ cd hattrick/
 $ cp vars/vars.example.yml vars/vars.yml
 $ vi vars/vars.yml
 ```
@@ -54,6 +54,20 @@ $ vi vars/vars.yml
 ```
 $ ansible-galaxy install -r playbooks/requirements.yml
 ``` 
+
+## Configure pipenv
+
+1. Install pipenv
+```
+$ pip3 install pip3env --user
+```
+
+2. Initialize the pipenv project
+```
+$ cd hattrick/
+$ pipenv --python 3.7
+$ pipenv install
+```
 
 ## To deploy the initial RHEL+KVM admin host
 

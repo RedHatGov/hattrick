@@ -59,7 +59,7 @@ $ ansible-galaxy install -r playbooks/requirements.yml
 
 1. Install pipenv
 ```
-$ pip3 install pip3env --user
+$ pip install pipenv --user
 ```
 
 2. Initialize the pipenv project

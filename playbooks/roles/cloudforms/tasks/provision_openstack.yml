@@ -126,7 +126,7 @@
   include_role:
     name: openstack_instance
   vars:
-    os_instance_name: cf-wk-{{ node_number }}
+    os_instance_name: cf-wk-{{ node_number }}.{{ domain }}
     os_instance_image: cf47
     os_instance_flavor: cf.min
     os_instance_key_name: hattrick_user

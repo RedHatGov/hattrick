@@ -1,0 +1,168 @@
+---
+- name: Create CloudForms database appliance
+  include_role:
+    name: openstack_instance
+  vars:
+    os_instance_name: "{{ cloudforms_db_hostname }}.{{ domain }}"
+    os_instance_image: cf47
+    os_instance_flavor: cf.min
+    os_instance_key_name: hattrick_user
+    os_instance_network: private
+    os_instance_auto_ip: no
+    os_instance_terminate_volume: yes
+    os_instance_volumes:
+      - name: database
+        size: 80
+    os_instance_security_groups:
+      - name: cfme
+        description: CloudForms Appliances
+        rules:
+          - protocol: icmp
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 22
+            port_range_max: 22
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 80
+            port_range_max: 80
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 443
+            port_range_max: 443
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 1
+            port_range_max: 65535
+            remote_group: "cfme"
+          - protocol: udp
+            port_range_min: 1
+            port_range_max: 65535
+            remote_group: "cfme"
+    os_auth: "{{ os_auth }}"
+
+- name: Assign floating IP to CloudForms database appliance
+  os_floating_ip:
+    auth: "{{ os_auth }}"
+    state: present
+    server: "{{ cloudforms_db_hostname }}.{{ domain }}"
+    nat_destination: private
+    floating_ip_address: "{{ cloudforms_db_public_ip }}"
+    reuse: true
+    wait: true
+
+- name: Wait for instance become ready to use
+  wait_for:
+   host: "{{ cloudforms_db_public_ip }}"
+   port: "22"
+   timeout: "320"
+   state: "started"
+
+- name: Pause playbook execution for 30 seconds
+  pause:
+    seconds: 30
+
+- name: Create CloudForms user interface appliance
+  include_role:
+    name: openstack_instance
+  vars:
+    os_instance_name: "{{ cloudforms_ui_hostname }}.{{ domain }}"
+    os_instance_image: cf47
+    os_instance_flavor: cf.min
+    os_instance_key_name: hattrick_user
+    os_instance_network: private
+    os_instance_auto_ip: no
+    os_instance_terminate_volume: yes
+    os_instance_security_groups:
+      - name: cfme
+        description: CloudForms Appliances
+        rules:
+          - protocol: icmp
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 22
+            port_range_max: 22
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 80
+            port_range_max: 80
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 443
+            port_range_max: 443
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 1
+            port_range_max: 65535
+            remote_group: "cfme"
+          - protocol: udp
+            port_range_min: 1
+            port_range_max: 65535
+            remote_group: "cfme"
+    os_auth: "{{ os_auth }}"
+
+- name: Assign floating IP to CloudForms user interface appliance
+  os_floating_ip:
+    auth: "{{ os_auth }}"
+    state: present
+    server: "{{ cloudforms_ui_hostname }}.{{ domain }}"
+    nat_destination: private
+    floating_ip_address: "{{ cloudforms_ui_public_ip }}"
+    reuse: true
+    wait: true
+
+- name: Wait for instance become ready to use
+  wait_for:
+   host: "{{ cloudforms_ui_public_ip }}"
+   port: "22"
+   timeout: "320"
+   state: "started"
+
+- name: Pause playbook execution for 30 seconds
+  pause:
+    seconds: 30
+
+- name: Create CloudForms worker appliances
+  include_role:
+    name: openstack_instance
+  vars:
+    os_instance_name: cf-wk-{{ node_number }}
+    os_instance_image: cf47
+    os_instance_flavor: cf.min
+    os_instance_key_name: hattrick_user
+    os_instance_network: private
+    os_instance_auto_ip: yes
+    os_instance_terminate_volume: yes
+    os_instance_volumes:
+      - name: solidstate
+        size: 200
+    os_instance_security_groups:
+      - name: cfme
+        description: CloudForms Appliances
+        rules:
+          - protocol: icmp
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 22
+            port_range_max: 22
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 80
+            port_range_max: 80
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 443
+            port_range_max: 443
+            remote_ip_prefix: 0.0.0.0/0
+          - protocol: tcp
+            port_range_min: 1
+            port_range_max: 65535
+            remote_group: "cfme"
+          - protocol: udp
+            port_range_min: 1
+            port_range_max: 65535
+            remote_group: "cfme"
+    os_auth: "{{ os_auth }}"
+  loop: "{{ range(1, cloudforms_provision_worker_count + 1) | list }}"
+  loop_control:
+    loop_var: node_number

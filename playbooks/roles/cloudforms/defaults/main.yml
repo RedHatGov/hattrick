@@ -1,2 +1,11 @@
 ---
 # defaults file for cloudforms
+
+cloudforms_provision: ""
+cloudforms_provision_action: provision
+cloudforms_provision_worker_count: 3
+
+cloudforms_db_hostname: cf-db-1
+cloudforms_db_public_ip: 192.168.1.81
+cloudforms_ui_hostname: cf-ui-1
+cloudforms_ui_public_ip: 192.168.1.82

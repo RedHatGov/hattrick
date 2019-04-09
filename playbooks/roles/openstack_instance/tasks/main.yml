@@ -48,4 +48,5 @@
     terminate_volume: "{{ os_instance_terminate_volume | default(omit) }}"
     state: present
     auth: "{{ os_auth | default(omit) }}"
+    wait: yes
   register: os_instance_launch_instance

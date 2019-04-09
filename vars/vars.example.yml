@@ -277,6 +277,14 @@ os_auth:
   password: p@ssw0rd
   project_name: myproject
 
+tower_hostname: tower
+tower_public_ip: 192.168.1.80
+tower_pwd: p@ssw0rd
+tower_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-ansible-2.7-rpms
+
 os_auth_openshift:
   auth_url: "{{ os_auth.auth_url }}"
   username: "{{ os_auth.username }}"

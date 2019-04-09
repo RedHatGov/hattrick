@@ -21,3 +21,6 @@ all:
       ansible_host: "{{ director_public_ip }}"
       ansible_ssh_user: "{{ director_ssh_user }}"
       ansible_ssh_pass: "{{ director_ssh_pwd }}"
+    tower:
+      ansible_host: "{{ tower_public_ip }}"
+      ansible_ssh_user: "cloud-user"

@@ -86,6 +86,9 @@ overcloud_cloud_name: openstack
 overcloud_public_ip: 192.168.1.40
 overcloud_user: operator
 overcloud_pwd: p@ssw0rd
+overcloud_allocate_fip_first3: 192.168.1.
+overcloud_allocate_fip_start: 80
+overcloud_allocate_fip_end: 100
 overcloud_admin_pwd: p@ssw0rd
 overcloud_controller_scale: 1
 overcloud_compute_scale: 1

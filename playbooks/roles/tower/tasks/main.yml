@@ -1,2 +1,62 @@
 ---
 # tasks file for tower
+- name: Install Ansible
+  become: true
+  yum:
+    name: ansible
+    state: present
+  tags: install
+
+- name: Make temp directory
+  become: true
+  file:
+    path: /tmp/tower
+    state: directory
+    mode: 0755
+  tags: install
+
+- name: Download latest Ansible setup
+  become: true
+  get_url:
+    url: http://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
+    dest: /tmp/tower/ansible.tar.gz
+    mode: 0755
+  when: not disconnected
+  tags: install
+
+- name: copy latest Ansible bundle for disconnected install
+  become: true
+  copy:
+    src: /repos/ansible-tower-setup-bundle-latest.el7.tar.gz
+    dest: /tmp/tower/ansible.tar.gz
+    mode: 0755
+  when: disconnected
+  tags: install
+
+- name: extract Ansible tar
+  become: true
+  unarchive:
+    src: /tmp/tower/ansible.tar.gz
+    dest: /tmp/tower/
+    remote_src: yes
+  tags: install
+
+- name: move the extracted directory
+  become: true
+  shell : ' mv /tmp/tower/ansible-tower-setup-* /tmp/tower/ansible'
+  tags: install
+
+- name: template out the tower inventory
+  become: true
+  template:
+    src: inventory.j2
+    dest: /tmp/tower/ansible/inventory
+    owner: root
+    group: root
+    mode: 0644
+  tags: install
+
+- name: Install tower
+  become: true
+  shell: /tmp/tower/ansible/setup.sh
+  tags: install

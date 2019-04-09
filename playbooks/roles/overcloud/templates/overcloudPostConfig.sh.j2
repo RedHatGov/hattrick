@@ -14,7 +14,7 @@ externalFipStart={{ networks.external.fipStart }}
 externalFipEnd={{ networks.external.fipEnd }}
 tenantNetwork=private
 tenantCidr='{{ overcloud_operator_private_cidr }}'
-keypairName=operator
+keypairName=$user
 #TODO: need to pull this from the kvm node
 keypairPubkey="{{ overcloud_operator_pub_key }}"
 
@@ -96,6 +96,11 @@ neutron router-create router-$externalNetwork
 neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 #Set the external gateway on the new router
 neutron router-gateway-set router-$externalNetwork $externalNetwork
+
+#allocate floating IPs to operators project
+{% for i in range(overcloud_allocate_fip_start, overcloud_allocate_fip_end) %}
+openstack floating ip create --floating-ip-address {{ overcloud_allocate_fip_first3 }}{{ i }} public
+{% endfor %}
 
 # uploading of images into osp
 {% for images in overcloud_guest_images %}

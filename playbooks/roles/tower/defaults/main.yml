@@ -1,2 +1,12 @@
 ---
 # defaults file for tower
+domain: example.com
+disconnected: false
+
+tower_hostname: tower
+tower_public_ip: []
+tower_pwd: p@ssw0rd
+tower_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-ansible-2.7-rpms

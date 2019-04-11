@@ -72,6 +72,8 @@
       tags: install
 
     - name: Configure Director
+      vars:
+        disconnected: true
       include_role:
         name: director
         tasks_from: post_config

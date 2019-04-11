@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 openstack overcloud container image prepare \
-  --namespace=registry.access.redhat.com/rhosp{{ versions.rhosp }} \
+  --namespace={{ director_upstream_registry }}/rhosp{{ versions.rhosp }} \
   --push-destination={{ director_provisioning_ip | ipaddr('address') }}:8787 \
   --prefix=openstack- \
 {% for services in director_optional_docker_services %}
@@ -15,6 +15,6 @@ openstack overcloud container image prepare \
   --set ceph_image={{ director_ceph_image }} \
 {% endif %}
 {% endif %}
-  --tag-from-label {version}-{release} \
+  --tag-from-label latest \
   --output-env-file=/home/stack/templates/overcloud_images.yaml \
   --output-images-file /home/stack/local_registry_images.yaml

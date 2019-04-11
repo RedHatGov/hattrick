@@ -84,6 +84,25 @@
   when: versions.rhosp >= 13
   tags: configure
   block:
+    - name: Add insecure registry to docker config
+      become_user: root
+      become: yes
+      lineinfile:
+        dest: /etc/sysconfig/docker
+        state: present
+        line: 'INSECURE_REGISTRY="--insecure-registry {{ director_upstream_registry }}"'
+        insertafter: "EOF"
+      tags: configure
+
+    - name: Restart the docker service
+      become_user: root
+      become: yes
+      service:
+        name: docker
+        state: restarted
+        enabled: yes
+      tags: configure
+
     - name: copy generate-container-prepare.sh script
       template:
         src: templates/generate-container-prepare.sh.j2

@@ -38,8 +38,9 @@ director_packages:
   - 'rhosp-director-images'
   - 'rhosp-director-images-ipa'
 director_optional_docker_services: []
+director_upstream_registry: registry.access.redhat.com
 director_ceph_enabled: true
-director_ceph_namespace: registry.access.redhat.com/rhceph
+director_ceph_namespace: "{{ director_upstream_registry }}/rhceph"
 director_ceph_image: rhceph-3-rhel7
 director_ceph_tag: "{version}-{release}"
 director_ceph_containerized: true

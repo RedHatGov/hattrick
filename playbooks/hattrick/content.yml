@@ -35,6 +35,13 @@
 
 - hosts: content
   tasks:
+    - name: Register to RHSM
+      vars:
+        rhsm_consumer_name: "{{ content_hostname }}.{{ domain }}"
+        rhsm_repos: "{{ content_repos }}"
+      include_role:
+        name: RedHatGov.rhsm
+
     - name: Install and configure content server
       include_role:
         name: RedHatGov.content

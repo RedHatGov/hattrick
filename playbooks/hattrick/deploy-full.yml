@@ -1,0 +1,18 @@
+---
+- name: Configure KVM host
+  import_playbook: kvm.yml
+
+- name: Provision, install and configure IDM
+  import_playbook: idm.yml
+
+- name: Provision, install and configure Director
+  import_playbook: director.yml
+
+- name: Configure and deploy OpenStack overcloud
+  import_playbook: overcloud.yml
+
+- name: Provision, install and configure Tower
+  import_playbook: tower.yml
+
+- name: Provision, install and configure CloudForms
+  import_playbook: cloudforms.yml

@@ -39,12 +39,41 @@
 - hosts: idm
   become: true
   tasks:
+    - name: Register to RHSM
+      vars:
+        rhsm_consumer_name: "{{ idm_hostname }}.{{ domain }}"
+        rhsm_repos: "{{ idm_repos }}"
+      include_role:
+        name: RedHatGov.rhsm
+      when: register_rhn
+      tags: install
+
+    - name: Unregister system from RHN
+      include_role:
+        name: RedHatGov.rhsm
+        tasks_from: unregister
+      when: not register_rhn
+      tags: install
+
+    - name: enable the needed rhel repositories
+      yum_repository:
+        name: "{{ item }}"
+        description: "{{ item }}"
+        baseurl: "http://{{ content_public_ip }}/repos/{{ item }}"
+        gpgcheck: no
+        enabled: yes
+        file: rhn-local
+        state: present
+      with_items:
+        - "{{ idm_repos }}"
+      when: not register_rhn
+      tags: install
+
     - name: Install IDM
       include_role:
         name: RedHatGov.idm
       tags: install
 
-    #TODO: this second call reruns rhsm role because of dependency
     - name: Configure IDM
       include_role:
         name: RedHatGov.idm

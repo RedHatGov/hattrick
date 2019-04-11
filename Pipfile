@@ -11,6 +11,7 @@ openstacksdk = "==0.14.0"
 shade = "==1.27.0"
 pyyaml = ">=4.2b1"
 requests = ">=2.20.0"
+netaddr = ">=0.7.19"
 
 [requires]
 python_version = "3.7"

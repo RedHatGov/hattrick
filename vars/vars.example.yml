@@ -168,8 +168,36 @@ content_nics:
     ip: "{{ content_public_ip }}"
     prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
     gateway: "{{ networks.external.gateway }}"
-    dns_server: "{{ dns_server_public }}"
+    dns_server: "{{ dns_server_local }}"
     config: "--type bridge --source br1 --model virtio"
+content_repos:
+  - rhel-{{ ansible_distribution_major_version }}-server-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+  - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-ansible-{{ versions.ansible }}-rpms
+  - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-openstack-10-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-openstack-10-devtools-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-openstack-10-optools-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-devtools-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-optools-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rhceph-{{ versions.ceph }}-osd-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rhceph-{{ versions.ceph }}-mon-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-rhceph-{{ versions.ceph }}-tools-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+  - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
+  - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+  - rh-gluster-3-client-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+  - rh-gluster-3-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+  - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
 #NOTE: Create/Get username/token from https://access.redhat.com/terms-based-registry/
 content_rh_registry_username: "1234567|rhnserviceaccount"
 content_rh_registry_token: "...."
@@ -191,7 +219,7 @@ director_nics:
     ip: "{{ director_public_ip }}"
     prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
     gateway: "{{ networks.external.gateway }}"
-    dns_server: "{{ dns_server_public }}"
+    dns_server: "{{ dns_server_local }}"
     config: "--type bridge --source br1 --model virtio"
 director_repos:
   - rhel-7-server-rpms

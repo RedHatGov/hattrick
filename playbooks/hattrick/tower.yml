@@ -14,7 +14,7 @@
       name: openstack_instance
     vars:
       os_instance_name: "{{ tower_hostname }}.{{ domain }}"
-      os_instance_image: rhel75
+      os_instance_image: rhel76
       os_instance_flavor: m1.large
       os_instance_key_name: hattrick_user
       os_instance_network: private

@@ -84,13 +84,14 @@
   when: versions.rhosp >= 13
   tags: configure
   block:
+    #TODO: Fix this task
     - name: Add insecure registry to docker config
       become_user: root
       become: yes
       lineinfile:
         dest: /etc/sysconfig/docker
         state: present
-        line: 'INSECURE_REGISTRY="--insecure-registry {{ director_upstream_registry }}"'
+        line: 'INSECURE_REGISTRY="--insecure-registry {{ director_provisioning_ip }}:8787 --insecure-registry {{ director_admin_apis_vip }}:8787 --insecure-registry {{ director_upstream_registry }}"'
         insertafter: "EOF"
       tags: configure
 
@@ -111,7 +112,7 @@
         group: stack
         mode: 0775
       tags: configure
-      when: disconnected is not defined and versions.rhosp == 13
+      when: versions.rhosp == 13
 
     - name: Pull the Docker images from a URL source
       shell: curl "{{ disconnected.docker.source }}" | gzip -d | sudo docker load
@@ -146,7 +147,7 @@
       async: 2700
       poll: 30
       tags: configure
-      when: disconnected is not defined and versions.rhosp == 13
+      when: versions.rhosp == 13
 
 - name: Process local CA for undercloud SSL
   become: yes

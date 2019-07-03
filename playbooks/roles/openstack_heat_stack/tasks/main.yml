@@ -1,0 +1,18 @@
+---
+# tasks file for playbooks/roles/openstack_heat_stack
+- name: Create heat stack
+  register: stack_create
+  os_stack:
+    auth: "{{ os_auth | default(omit) }}"
+    name: "{{ os_stack_name }}"
+    state: present
+    template: "{{ role_path }}/files/{{ os_stack_template }}"
+    #environment:
+    #- "{{ role_path }}/files/environment.yaml"
+    parameters:
+      server_count: "{{ server_count }}"
+      flavor: "{{ flavor }}"
+      image: "{{ image }}"
+      keypair: "{{ keypair }}"
+      private_network: "{{ private_network }}"
+      public_network: "{{ public_network }}"

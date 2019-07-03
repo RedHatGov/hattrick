@@ -1,0 +1,19 @@
+---
+
+all:
+  hosts:
+    localhost:
+      ansible_python_interpreter: python
+      ansible_connection: local
+    kvm:
+      ansible_host: "{{ kvm_public_ip }}"
+      ansible_ssh_user: "{{ kvm_ssh_user }}"
+      ansible_ssh_pass: "{{ kvm_ssh_pwd }}"
+    openstack:
+      ansible_host: "{{ overcloud_public_ip }}"
+      ansible_ssh_user: "{{ kvm_ssh_user }}"
+      ansible_ssh_pass: "{{ kvm_ssh_pwd }}"
+    tower:
+      ansible_host: "{{ tower_public_ip }}"
+      ansible_ssh_user: "{{ kvm_ssh_user }}"
+      ansible_ssh_pass: "redhat"

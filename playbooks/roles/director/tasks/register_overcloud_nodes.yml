@@ -19,7 +19,7 @@
 
 - name: set validation errors for failed pings
   set_fact:
-    validation_errors: "{{ validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
+    validation_errors: "{{ director_validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
   when: "item.rc != 0"
   with_items: "{{ ping_response.results }}"
   tags: register
@@ -57,7 +57,7 @@
     password: "{{ item.pm_pwd }}"
     state: off
   with_items: "{{ director_overcloud_nodes }}"
-  when: 'director_poweroff|bool'
+  when: "{{ director_poweroff|bool }}"
   ignore_errors: true
   tags: register
 

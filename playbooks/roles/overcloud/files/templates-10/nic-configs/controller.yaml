@@ -149,38 +149,38 @@ resources:
                       type: interface
                       name: nic2
                       #mtu: 9000
+            -
+              type: vlan
+              device: bond0
+              vlan_id: {get_param: InternalApiNetworkVlanID}
+              #mtu: 9000
+              addresses:
                 -
-                  type: vlan
-                  device: bond0
-                  vlan_id: {get_param: InternalApiNetworkVlanID}
-                  #mtu: 9000
-                  addresses:
-                    -
-                      ip_netmask: {get_param: InternalApiIpSubnet}
+                  ip_netmask: {get_param: InternalApiIpSubnet}
+            -
+              type: vlan
+              device: bond0
+              vlan_id: {get_param: StorageNetworkVlanID}
+              #mtu: 9000
+              addresses:
                 -
-                  type: vlan
-                  device: bond0
-                  vlan_id: {get_param: StorageNetworkVlanID}
-                  #mtu: 9000
-                  addresses:
-                    -
-                      ip_netmask: {get_param: StorageIpSubnet}
+                  ip_netmask: {get_param: StorageIpSubnet}
+            -
+              type: vlan
+              device: bond0
+              vlan_id: {get_param: StorageMgmtNetworkVlanID}
+              #mtu: 9000
+              addresses:
                 -
-                  type: vlan
-                  device: bond0
-                  vlan_id: {get_param: StorageMgmtNetworkVlanID}
-                  #mtu: 9000
-                  addresses:
-                    -
-                      ip_netmask: {get_param: StorageMgmtIpSubnet}
+                  ip_netmask: {get_param: StorageMgmtIpSubnet}
+            -
+              type: vlan
+              device: bond0
+              vlan_id: {get_param: TenantNetworkVlanID}
+              #mtu: 9000
+              addresses:
                 -
-                  type: vlan
-                  device: bond0
-                  vlan_id: {get_param: TenantNetworkVlanID}
-                  #mtu: 9000
-                  addresses:
-                    -
-                      ip_netmask: {get_param: TenantIpSubnet}
+                  ip_netmask: {get_param: TenantIpSubnet}
                 # Uncomment when including environments/network-management.yaml
                 # If setting default route on the Management interface, comment
                 # out the default route on the External interface. This will

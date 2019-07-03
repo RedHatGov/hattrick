@@ -22,9 +22,9 @@ parameter_defaults:
   ## Whether to enable rbd (Ceph) backend for Nova ephemeral storage.
   NovaEnableRbdBackend: true
   ## Glance backend can be either 'rbd' (Ceph), 'swift' or 'file'.
-  GlanceBackend: rbd
+  GlanceBackend: swift
   ## Gnocchi backend can be either 'rbd' (Ceph), 'swift' or 'file'.
-  GnocchiBackend: rbd
+  GnocchiBackend: swift
 
   #### CINDER NFS SETTINGS ####
 
@@ -78,16 +78,16 @@ parameter_defaults:
       pgp_num: 512
       size: 2
     vms:
+      pg_num: 128
+      pgp_num: 128
+      size: 2
+    images:
       pg_num: 64
       pgp_num: 64
       size: 2
-    images:
-      pg_num: 32
-      pgp_num: 32
-      size: 2
     default.rgw.buckets.data:
-      pg_num: 128
-      pgp_num: 128
+      pg_num: 256
+      pgp_num: 256
       size: 2
     default.rgw.buckets.index:
       pg_num: 32
@@ -103,17 +103,15 @@ parameter_defaults:
       size: 2
   ExtraConfig:
     ceph::profile::params::osd_journal_size: 5120
-    ceph::profile::params::osd_pool_default_pg_num: 8
-    ceph::profile::params::osd_pool_default_pgp_num: 8
+    ceph::profile::params::osd_pool_default_pg_num: 16
+    ceph::profile::params::osd_pool_default_pgp_num: 16
     ceph::profile::params::osd_pool_default_size: 2
     ceph::profile::params::osd_pool_default_min_size: 2
     ceph::profile::params::osd_recovery_max_active: 2
     ceph::profile::params::osd_recovery_op_priority: 2
     ceph::profile::params::osd_max_backfills: 1
     ceph::profile::params::osds:
-      '/dev/sdb':
-        journal: '/dev/nvme0n1'
-      '/dev/sdc':
-        journal: '/dev/nvme0n1'
-      '/dev/sdd':
-        journal: '/dev/nvme0n1'
+      '/dev/sda': {}
+      '/dev/sdb': {}
+      '/dev/sdc': {}
+      '/dev/sdd': {}

@@ -15,7 +15,7 @@ parameter_defaults:
   ControlPlaneSubnetCidr: '{{ networks.provisioning.cidr | ipaddr('prefix') }}'
   # Gateway router for the provisioning network (or Undercloud IP)
   ControlPlaneDefaultRoute: {{ networks.provisioning.gateway }}
-  EC2MetadataIp: {{ rhosp_director.provisioning_ip | ipaddr('address') }}  # Generally the IP of the Undercloud
+  EC2MetadataIp: {{ director_provisioning_ip | ipaddr('address') }}  # Generally the IP of the Undercloud
   # Customize the IP subnets to match the local environment
   InternalApiNetCidr: {{ networks.internal_api.cidr }}
   StorageNetCidr: {{ networks.storage.cidr }}
@@ -37,7 +37,7 @@ parameter_defaults:
   ExternalAllocationPools: [{'start': '{{ networks.external.dhcpStart }}', 'end': '{{ networks.external.dhcpEnd }}'}]
   # Gateway router for the external network
   ExternalInterfaceDefaultRoute: {{ networks.external.gateway }}
-  PublicVirtualFixedIPs: [{'ip_address':'{{ networks.external.dhcpStart }}'}]
+  PublicVirtualFixedIPs: [{'ip_address':'{{ overcloud_public_ip }}'}]
   # Uncomment if using the Management Network (see network-management.yaml)
   # ManagementNetCidr: 10.0.1.0/24
   # ManagementAllocationPools: [{'start': '10.0.1.10', 'end', '10.0.1.50'}]
@@ -47,7 +47,7 @@ parameter_defaults:
   NeutronExternalNetworkBridge: "''"
   # The tunnel type for the tenant network (vxlan or gre). Set to '' to disable tunneling.
   NeutronTunnelTypes: 'vxlan'
-  #NeutronGlobalPhysnetMtu: 8996
+  NeutronGlobalPhysnetMtu: 8996
   NeutronBridgeMappings: 'datacentre:br-ex,prov:br-prov'
   NeutronNetworkVLANRanges: 'datacentre:1:4000,prov:1:4000'
   NeutronFlatNetworks: 'datacentre,prov'

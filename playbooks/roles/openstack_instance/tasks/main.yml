@@ -1,37 +1,44 @@
 ---
-
 - name: Create volume(s) for {{ os_instance_name }}
   os_volume:
-    display_name: "{{ os_instance_name }}-{{ item.name }}"
-    size: "{{ item.size }}"
+    display_name: "{{ os_instance_name }}-{{ volume.name }}"
+    size: "{{ volume.size }}"
     state: present
     auth: "{{ os_auth | default(omit) }}"
   loop: "{{ os_instance_volumes }}"
+  loop_control:
+    loop_var: volume
   register: os_instance_create_volumes
 
 - name: Create security group(s) for {{ os_instance_name }}
   os_security_group:
-    name: "{{ item.name }}"
-    description: "{{ item.description | default(omit) }}"
+    name: "{{ sec_group.name }}"
+    description: "{{ sec_group.description | default(omit) }}"
+    project: "{{ os_auth.project_name }}"
     state: present
     auth: "{{ os_auth | default(omit) }}"
   loop: "{{ os_instance_security_groups }}"
+  loop_control:
+    loop_var: sec_group
   register: os_instance_create_security_groups
 
 - name: Create security group rule(s) for {{ os_instance_name }}
   os_security_group_rule:
-    security_group: "{{ item.0.name }}"
-    direction: "{{ item.1.direction | default(omit) }}"
-    ethertype: "{{ item.1.ethertype | default(omit) }}"
-    interface: "{{ item.1.interface | default(omit) }}"
-    port_range_max: "{{ item.1.port_range_max | default(omit) }}"
-    port_range_min: "{{ item.1.port_range_min | default(omit) }}"
-    protocol: "{{ item.1.protocol | default(omit) }}"
-    remote_group: "{{ item.1.remote_group | default(omit) }}"
-    remote_ip_prefix: "{{ item.1.remote_ip_prefix | default(omit) }}"
+    security_group: "{{ sec_group.0.name }}"
+    direction: "{{ sec_group.1.direction | default(omit) }}"
+    ethertype: "{{ sec_group.1.ethertype | default(omit) }}"
+    interface: "{{ sec_group.1.interface | default(omit) }}"
+    port_range_max: "{{ sec_group.1.port_range_max | default(omit) }}"
+    port_range_min: "{{ sec_group.1.port_range_min | default(omit) }}"
+    protocol: "{{ sec_group.1.protocol | default(omit) }}"
+    remote_group: "{{ sec_group.1.remote_group | default(omit) }}"
+    remote_ip_prefix: "{{ sec_group.1.remote_ip_prefix | default(omit) }}"
+    project: "{{ os_auth.project_name }}"
     state: present
     auth: "{{ os_auth | default(omit) }}"
   loop: "{{ query('subelements', os_instance_security_groups, 'rules') }}"
+  loop_control:
+    loop_var: sec_group
   register: os_instance_create_security_group_rules
 
 - name: Launch instance {{ os_instance_name }}
@@ -44,6 +51,7 @@
     volumes: "{{ os_instance_create_volumes.results | map(attribute='volume.id') | list }}"
     network: "{{ os_instance_network }}"
     auto_ip: "{{ os_instance_auto_ip | default(omit) }}"
+    floating_ips: "{{ os_instance_floating_ip | default(omit) }}"
     timeout: "{{ os_instance_timeout | default(omit) }}"
     terminate_volume: "{{ os_instance_terminate_volume | default(omit) }}"
     state: present

@@ -1,0 +1,92 @@
+heat_template_version: 2015-04-30
+
+description: >
+  HOT template to deploy multiple servers using a float
+parameters:
+  keypair:
+    type: string
+    description: Name of keypair to assign to servers
+  image:
+    type: string
+    description: Name of image to use for servers
+  flavor:
+    type: string
+    description: Flavor to use for servers
+  public_network:
+    type: string
+    description: >
+      Name of public network for which floating IP addresses will be allocated
+  private_network:
+    type: string
+    description: Name of private network into which servers get deployed
+  server_count:
+    type: number
+    description: Number of server you with to build
+
+resources:
+  ssh_icmp_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Allow SSH on port 22 and ICMP
+      name:
+        str_replace:
+          template: ssh-icmp-sg-stack_id
+          params:
+            stack_id: { get_param: "OS::stack_id" }
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: tcp,
+        port_range_min: 22,
+        port_range_max: 22},
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: icmp}]
+
+  web_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Allow HTTP and HTTPS
+      name:
+        str_replace:
+          template: web-sg-stack_id
+          params:
+            stack_id: { get_param: "OS::stack_id" }
+      rules: [
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: tcp,
+        port_range_min: 80,
+        port_range_max: 80},
+        {remote_ip_prefix: 0.0.0.0/0,
+        protocol: tcp,
+        port_range_min: 443,
+        port_range_max: 443}
+        ]
+
+  server_group:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: server_count }
+      resource_def:
+        type: server-with-fip.yaml
+        properties:
+          name: server_%index%
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          keypair: { get_param: keypair }
+          public_network: { get_param: public_network }
+          private_network: { get_param: private_network }
+          ssh_icmp_security_group_name:
+            str_replace:
+              template: ssh-icmp-sg-stack_id
+              params:
+                stack_id: { get_param: "OS::stack_id" }
+          web_security_group_name:
+            str_replace:
+              template: web-sg-stack_id
+              params:
+                stack_id: { get_param: "OS::stack_id" }
+
+
+outputs:
+  server_resources:
+    description: Servers in use
+    value: { get_attr: [server_group, refs]}

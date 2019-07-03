@@ -23,8 +23,8 @@ openstack overcloud deploy --templates \
   --control-flavor control \
   --compute-flavor compute \
   --ceph-storage-flavor ceph-storage \
-  --control-scale {{ rhosp_overcloud.controller_scale }} \
-  --compute-scale {{ rhosp_overcloud.compute_scale }} \
-  --ceph-storage-scale {{ rhosp_overcloud.ceph_storage_scale }} \
+  --control-scale {{ overcloud_controller_scale }} \
+  --compute-scale {{ overcloud_compute_scale }} \
+  --ceph-storage-scale {{ overcloud_ceph_storage_scale }} \
   --ntp-server {{ ntp_server }} \
-  --timeout {{ rhosp_overcloud.timeout }}
+  --timeout {{ overcloud_timeout }}

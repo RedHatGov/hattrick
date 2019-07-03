@@ -3,6 +3,8 @@
   gather_facts: no
   tasks:
   - name: Provision Tower
+    vars:
+      os_auth: "{{ general_os_auth }}"
     include_role:
       name: tower
       tasks_from: provision_openstack

@@ -1,0 +1,379 @@
+---
+- hosts: director
+  become: true
+  become_user: stack
+  tasks:
+  - name: create all projects
+    shell: "source /home/stack/operatorrc && if [[ $(openstack project list) != *project{{ item }}* ]]; then openstack project create project{{ item }}; fi"
+    ignore_errors: true
+    loop: "{{ range(1, 3 + 1, 1)|list }}"
+    register: project_results
+    changed_when: '"project{{ item }}" in project_results.stdout'
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: get list of openstack projects
+    os_project_facts:
+      auth: "{{ general_os_auth }}"
+
+  - debug:
+      msg: "{{ openstack_projects }}"
+
+  - name: grant admin role on each project to {{ general_os_auth.username }}
+    os_user_role:
+      auth: "{{ general_os_auth }}"
+      user: "{{ general_os_auth.username }}"
+      role: admin
+      project: "{{ project.name }}"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Update quotas
+    os_quota:
+      auth: "{{ general_os_auth }}"
+      name: "{{ project.name }}"
+      security_group_rule: 400
+      security_group: 20
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create a private-a network in each project
+    os_network:
+      auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      state: present
+      name: "{{ project.name }}-private-a"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create private-a subnet in each project
+    os_subnet:
+      auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      state: present
+      network_name: "{{ project.name }}-private-a"
+      name: "{{ project.name }}-private-a-subnet"
+      cidr: 10.10.0.0/24
+      dns_nameservers:
+         - "{{ dns_server_local }}"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create a private-b network in each project
+    os_network:
+      auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      state: present
+      name: "{{ project.name }}-private-b"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create private-b subnet in each project
+    os_subnet:
+      auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      state: present
+      network_name: "{{ project.name }}-private-b"
+      name: "{{ project.name }}-private-b-subnet"
+      cidr: 10.10.1.0/24
+      dns_nameservers:
+         - "{{ dns_server_local }}"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create a router and attach both private-a and private-b networks
+    os_router:
+      auth: "{{ general_os_auth }}"
+      state: present
+      name: router-{{ project.name }}
+      network: public
+      enable_snat: yes
+      project: "{{ project.name }}"
+      interfaces:
+        - "{{ project.name }}-private-a-subnet"
+        - "{{ project.name }}-private-b-subnet"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Add keypair with current user public key
+    tags: provision
+    os_keypair:
+      auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      state: present
+      name: "{{ project.name }}-keypair"
+      public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create RHEL 7.6 heat stack on private-a network
+    vars:
+      os_auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      os_stack_name: "{{ project.name }}-rhel76-private-a"
+      os_stack_template: server-group.yaml
+      server_count: 2
+      keypair: "{{ project.name }}-keypair"
+      image: rhel76
+      flavor: m1.small
+      private_network: "{{ project.name }}-private-a"
+      public_network: public
+    include_role:
+      name: openstack_heat_stack
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create RHEL 7.6 heat stack on private-b network
+    vars:
+      os_auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      os_stack_name: "{{ project.name }}-rhel76-private-b"
+      os_stack_template: server-group.yaml
+      server_count: 2
+      keypair: "{{ project.name }}-keypair"
+      image: rhel76
+      flavor: m1.small
+      private_network: "{{ project.name }}-private-b"
+      public_network: public
+    include_role:
+      name: openstack_heat_stack
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create CentOS 7 heat stack on private-a network
+    vars:
+      os_auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      os_stack_name: "{{ project.name }}-centos7-private-a"
+      os_stack_template: server-group.yaml
+      server_count: 2
+      keypair: "{{ project.name }}-keypair"
+      image: centos7
+      flavor: m1.small
+      private_network: "{{ project.name }}-private-a"
+      public_network: public
+    include_role:
+      name: openstack_heat_stack
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create CentOS 7 heat stack on private-b network
+    vars:
+      os_auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      os_stack_name: "{{ project.name }}-centos7-private-b"
+      os_stack_template: server-group.yaml
+      server_count: 2
+      keypair: "{{ project.name }}-keypair"
+      image: centos7
+      flavor: m1.small
+      private_network: "{{ project.name }}-private-b"
+      public_network: public
+    include_role:
+      name: openstack_heat_stack
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create Win Server 2012r2 heat stack on private-a network
+    vars:
+      os_auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      os_stack_name: "{{ project.name }}-win2012r2-private-a"
+      os_stack_template: server-group.yaml
+      server_count: 1
+      keypair: "{{ project.name }}-keypair"
+      image: win2012r2
+      flavor: m1.large
+      private_network: "{{ project.name }}-private-a"
+      public_network: public
+    include_role:
+      name: openstack_heat_stack
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+  - name: Create Win Server 2012r2 heat stack on private-b network
+    vars:
+      os_auth:
+        auth_url: "{{ general_os_auth.auth_url }}"
+        username: "{{ general_os_auth.username }}"
+        password: "{{ general_os_auth.password }}"
+        project_name: "{{ project.name }}"
+        project_domain_name: default
+        user_domain_name: default
+      os_stack_name: "{{ project.name }}-win2012r2-private-b"
+      os_stack_template: server-group.yaml
+      server_count: 1
+      keypair: "{{ project.name }}-keypair"
+      image: win2012r2
+      flavor: m1.large
+      private_network: "{{ project.name }}-private-b"
+      public_network: public
+    include_role:
+      name: openstack_heat_stack
+    when: project.name is search("project")
+    loop: "{{ openstack_projects }}"
+    loop_control:
+      loop_var: project
+
+#  - name: Create instance-a
+#    tags: provision
+#    vars:
+#      os_auth:
+#        auth_url: "{{ general_os_auth.auth_url }}"
+#        username: "{{ general_os_auth.username }}"
+#        password: "{{ general_os_auth.password }}"
+#        project_name: "{{ item[0].name }}"
+#        project_domain_name: default
+#        user_domain_name: default
+      #os_instance_floating_ip: 192.168.1.80
+#      os_instance_name: "{{ item[0].name }}-instance-a-{{ item[1] }}.{{ domain }}"
+#      os_instance_image: rhel76
+#      os_instance_flavor: m1.small
+#      os_instance_key_name: "{{ item[0].name }}-keypair"
+#      os_instance_network: "{{ item[0].name }}-private-a"
+#      os_instance_auto_ip: yes
+#      os_instance_terminate_volume: yes
+#      os_instance_security_groups:
+#        - name: ssh
+#          description: Allow SSH
+#          rules:
+#            - protocol: tcp
+#              port_range_min: 22
+#              port_range_max: 22
+#              remote_ip_prefix: 0.0.0.0/0
+#        - name: web
+#          rules:
+#            - protocol: tcp
+#              port_range_min: 80
+#              port_range_max: 80
+#              remote_ip_prefix: 0.0.0.0/0
+#            - protocol: tcp
+#              port_range_min: 443
+#              port_range_max: 443
+#              remote_ip_prefix: 0.0.0.0/0
+#    include_role:
+#      name: openstack_instance
+#    when: item[0].name is search("project")
+#    with_nested:
+#      - "{{ openstack_projects }}"
+#      - "{{ range(1, 4 + 1, 1)|list }}"
+
+#  - name: Create instance-b
+#    tags: provision
+#    include_role:
+#      name: openstack_instance
+#    vars:
+#      os_auth:
+#        auth_url: "{{ general_os_auth.auth_url }}"
+#        username: "{{ general_os_auth.username }}"
+#        password: "{{ general_os_auth.password }}"
+#        project_name: "{{ project.name }}"
+#        project_domain_name: default
+#        user_domain_name: default
+      #os_instance_floating_ip: 192.168.1.80
+#      os_instance_name: "{{ project.name }}-instance-b.{{ domain }}"
+#      os_instance_image: rhel76
+#      os_instance_flavor: m1.small
+#      os_instance_key_name: "{{ project.name }}-keypair"
+#      os_instance_network: "{{ project.name }}-private-b"
+#      os_instance_auto_ip: yes
+#      os_instance_terminate_volume: yes
+#      os_instance_security_groups:
+#        - name: ssh
+#          description: Allow SSH
+#          rules:
+#            - protocol: tcp
+#              port_range_min: 22
+#              port_range_max: 22
+#              remote_ip_prefix: 0.0.0.0/0
+#        - name: web
+#          rules:
+#            - protocol: tcp
+#              port_range_min: 80
+#              port_range_max: 80
+#              remote_ip_prefix: 0.0.0.0/0
+#            - protocol: tcp
+#              port_range_min: 443
+#              port_range_max: 443
+#              remote_ip_prefix: 0.0.0.0/0
+#    when: project.name is search("project")
+#    loop: "{{ openstack_projects }}"
+#    loop_control:
+#      loop_var: project

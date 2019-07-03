@@ -1,0 +1,8 @@
+---
+# tasks file for playbooks/roles/openstack_heat_stack
+- name: Delete heat stack
+  register: stack_create
+  os_stack:
+    auth: "{{ os_auth | default(omit) }}"
+    name: "{{ os_stack_name }}"
+    state: absent

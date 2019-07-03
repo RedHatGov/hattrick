@@ -1,0 +1,11 @@
+---
+# defaults file for playbooks/roles/openstack_heat_stack
+os_auth: []
+os_stack_name: []
+os_stack_template: openstack-instance.yaml
+server_count: 1
+keypair: operator
+image: cirros
+flavor: m1.tiny
+private_network: private
+public_network: public

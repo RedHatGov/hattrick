@@ -1,2 +1,2 @@
 resource_registry:
-  OS::TripleO::NodeUserData: /home/stack/templates/firstboot/firstboot-config.yaml
+  OS::TripleO::NodeUserData: /home/stack/templates/firstboot/wipe-disks.yaml

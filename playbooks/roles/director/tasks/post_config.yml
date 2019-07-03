@@ -10,12 +10,14 @@
   become: yes
   become_user: stack
   shell: source /home/stack/stackrc && openstack subnet set --no-dns-nameservers ctlplane-subnet
+  when: versions.rhosp >= 13
   tags: configure
 
 - name: adding dns to ctlplane subnet
   become: yes
   become_user: stack
   shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr | ipaddr('network') }}/ {print $2}')
+  ignore_errors: true
   tags: configure
 
 - name: set mtu to 1500 on ctlplane network
@@ -24,6 +26,7 @@
   shell: "source /home/stack/stackrc && openstack network set --mtu 1500 ctlplane"
   args:
     chdir: /home/stack
+  when: versions.rhosp >= 13
   tags: configure
 
 - name: configuring fernet tokens for overcloud
@@ -85,15 +88,16 @@
   tags: configure
   block:
     #TODO: Fix this task
-    - name: Add insecure registry to docker config
-      become_user: root
-      become: yes
-      lineinfile:
-        dest: /etc/sysconfig/docker
-        state: present
-        line: 'INSECURE_REGISTRY="--insecure-registry {{ director_provisioning_ip }}:8787 --insecure-registry {{ director_admin_apis_vip }}:8787 --insecure-registry {{ director_upstream_registry }}"'
-        insertafter: "EOF"
-      tags: configure
+    #- name: Add insecure registry to docker config
+    #  become_user: root
+    #  become: yes
+    #  lineinfile:
+    #    dest: /etc/sysconfig/docker
+    #    state: present
+    #    line: 'INSECURE_REGISTRY="--insecure-registry {{ director_provisioning_ip }}:8787 --insecure-registry {{ director_admin_apis_vip }}:8787 --insecure-registry {{ director_upstream_registry }}"'
+    #    insertafter: "EOF"
+    #  when: disconnected is defined
+    #  tags: configure
 
     - name: Restart the docker service
       become_user: root
@@ -133,8 +137,8 @@
       tags: configure
       when: disconnected is defined and disconnected.docker is defined and versions.rhosp == 13
 
-    - name: Create a template to pull the images to the local registry
-      shell: source /home/stack/stackrc && /home/stack/generate-container-prepare.sh
+    - name: Run script to pull the images to the local registry
+      shell: source /home/stack/stackrc && sudo /home/stack/generate-container-prepare.sh
       args:
         chdir: /home/stack
       when: versions.rhosp == 13

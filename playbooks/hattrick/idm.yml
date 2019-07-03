@@ -77,5 +77,5 @@
     - name: Configure IDM
       include_role:
         name: RedHatGov.idm
-        tasks_from: post_config
+        tasks_from: configure
       tags: configure

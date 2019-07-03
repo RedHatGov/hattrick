@@ -1,0 +1,7 @@
+parameter_defaults:
+  server_count: 1
+  keypair: operator
+  image: cirros
+  flavor: m1.tiny
+  private_network: private
+  public_network: public

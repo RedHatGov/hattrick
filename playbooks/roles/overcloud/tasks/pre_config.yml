@@ -27,7 +27,7 @@
     dest: /home/stack/templates/node-info.yaml
     owner: stack
     group: stack
-  when: versions.rhosp == 13
+  when: versions.rhosp >= 13
   tags: pre-overcloud
 
 - name: copy cloudname.yaml template
@@ -48,6 +48,7 @@
     dest: /home/stack/templates/network_data.yaml
     owner: stack
     group: stack
+  when: versions.rhosp >= 13
   tags: pre-overcloud
 
 - name: copy network-environment.yaml template
@@ -79,7 +80,7 @@
     dest: /home/stack/templates/ceph-environment.yaml
     owner: stack
     group: stack
-  when: versions.rhosp == 13
+  when: versions.rhosp >= 13
   tags: pre-overcloud
 
 - name: copy timezone.yaml template

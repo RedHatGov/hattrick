@@ -8,24 +8,30 @@
 
 - name: Teardown security group(s) for {{ os_instance_name }}
   os_security_group:
-    name: "{{ item.name }}"
+    name: "{{ sec_group.name }}"
     state: absent
     auth: "{{ os_auth | default(omit) }}"
   loop: "{{ os_instance_security_groups }}"
+  loop_control:
+    loop_var: sec_group
   register: os_instance_teardown_security_groups
   failed_when: no  # Security groups in use by other instances will normally cause this to fail, ignore the failure
 
 - name: Check for real teardown security group(s) failure
   fail:
-    msg: "Failed to delete the security group '{{ item.item.name }}'"
+    msg: "Failed to delete the security group '{{ sec_group.item.name }}'"
   when: >-
-    "msg" in item
-    and "SecurityGroupInUse" not in item.msg
+    "msg" in sec_group
+    and "SecurityGroupInUse" not in sec_group.msg
   loop: "{{ os_instance_teardown_security_groups.results }}"
+  loop_control:
+    loop_var: sec_group
 
 - name: Teardown volume(s) for {{ os_instance_name }}
   os_volume:
-    display_name: "{{ os_instance_name }}-{{ item.name }}"
+    display_name: "{{ os_instance_name }}-{{ volume.name }}"
     state: absent
     auth: "{{ os_auth | default(omit) }}"
   loop: "{{ os_instance_volumes }}"
+  loop_control:
+    loop_var: volume

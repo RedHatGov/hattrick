@@ -17,14 +17,14 @@
       include_role:
         name: RedHatGov.kvm_vm
 
-    - name: Add Content to ansible inventory
+    - name: Add Director to ansible inventory
       add_host:
         name: "{{ director_hostname }}"
         ansible_host: "{{ director_public_ip }}"
         rhsm_consumer_name: "{{ director_hostname }}.{{ domain }}"
       changed_when: no
 
-    - name: waiting for content server ssh to come online
+    - name: waiting for Director server ssh to come online
       wait_for:
         host: "{{ director_public_ip }}"
         port: 22

@@ -1,0 +1,73 @@
+heat_template_version: 2013-05-23
+
+description: >
+  Deploy a server and attach a floating IP address
+parameters:
+  keypair:
+    type: string
+    description: Name of keypair to assign to servers
+  image:
+    type: string
+    description: Name of image to use for servers
+  name:
+    type: string
+    description: Name of the server
+  flavor:
+    type: string
+    description: Flavor to use for servers
+  public_network:
+    type: string
+    description: >
+      Name of public network for which floating IP addresses will be allocated
+  private_network:
+    type: string
+    description: Name of private network into which servers get deployed
+  ssh_icmp_security_group_name:
+    type: string
+    description: Name of the ssh and icmp security group
+  web_security_group_name:
+    type: string
+    description: Name of the web security group
+
+resources:
+  server:
+    type: OS::Nova::Server
+    properties:
+      name: { get_param: name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: keypair }
+      networks:
+        - port: { get_resource: server_port }
+
+  cinder_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 5
+
+  volume_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      volume_id: { get_resource: cinder_volume }
+      instance_uuid: { get_resource: server }
+      mountpoint: /dev/vdb
+
+  server_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: private_network }
+      security_groups: [{ get_param: ssh_icmp_security_group_name },{ get_param: web_security_group_name }]
+
+  server_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+      port_id: { get_resource: server_port }
+
+outputs:
+  server_private_ip:
+    description: IP address of server in private network
+    value: { get_attr: [ server, first_address ] }
+  server_public_ip:
+    description: Floating IP address of server in public network
+    value: { get_attr: [ server_floating_ip, floating_ip_address ] }

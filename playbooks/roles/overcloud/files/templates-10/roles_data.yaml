@@ -96,13 +96,14 @@
     - OS::TripleO::Services::SensuClient
     - OS::TripleO::Services::FluentdClient
     - OS::TripleO::Services::VipHosts
-    - OS::TripleO::Services::CephOSD
-    - OS::TripleO::Services::NovaCompute
-    - OS::TripleO::Services::NovaLibvirt
-    - OS::TripleO::Services::ComputeCeilometerAgent
-    - OS::TripleO::Services::ComputeNeutronL3Agent
-    - OS::TripleO::Services::ComputeNeutronMetadataAgent
-    - OS::TripleO::Services::NeutronSriovAgent
+    #Additional Services
+    #- OS::TripleO::Services::CephOSD
+    #- OS::TripleO::Services::NovaCompute
+    #- OS::TripleO::Services::NovaLibvirt
+    #- OS::TripleO::Services::ComputeCeilometerAgent
+    #- OS::TripleO::Services::ComputeNeutronL3Agent
+    #- OS::TripleO::Services::ComputeNeutronMetadataAgent
+    #- OS::TripleO::Services::NeutronSriovAgent
 
 - name: Compute
   CountDefault: 1

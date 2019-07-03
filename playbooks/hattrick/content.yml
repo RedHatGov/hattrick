@@ -41,6 +41,7 @@
         rhsm_repos: "{{ content_repos }}"
       include_role:
         name: RedHatGov.rhsm
+      tags: install
 
     - name: Install and configure content server
       include_role:

@@ -251,7 +251,7 @@
     - OS::TripleO::Services::OVNMetadataAgent
     - OS::TripleO::Services::Ptp
     #Additional Services
-    #- OS::TripleO::Services::CephOSD
+    - OS::TripleO::Services::CephOSD
     #Ceph Cluster Services
     #- OS::TripleO::Services::CephExternal
     #- OS::TripleO::Services::CephMds

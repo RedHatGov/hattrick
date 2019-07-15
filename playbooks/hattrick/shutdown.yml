@@ -1,0 +1,176 @@
+---
+- hosts: localhost
+  name: playbook to shutdown all systems and services
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: shutdown confirmation
+    pause:
+      prompt:
+        'Please confirm you want to shutdown the environment. Press return to continue. Press Ctrl+c and then "a" to abort'
+
+  - name: authenticate to the cloud and retrieve the service catalog
+    os_auth:
+      auth: "{{ general_os_auth | default(omit) }}"
+
+  - name: get list of openstack projects
+    os_project_facts:
+      auth: "{{ general_os_auth | default(omit) }}"
+
+  - name: get list of instances per project
+    os_server_facts:
+      auth: "{{ general_os_auth | default(omit) }}"
+    with_items:
+      - "{{ openstack_projects }}"
+
+  - name: stop all instances in each project
+    os_server_action:
+      action: stop
+      auth: "{{ general_os_auth | default(omit) }}"
+      server: "{{ item.name }}"
+      timeout: 200
+    with_items:
+      - "{{ openstack_servers }}"
+    ignore_errors: true
+  
+  - name: shutdown cloud confirmation
+    pause:
+      prompt:
+        'Please confirm you want to shutdown the rest of the cloud. Press return to continue. Press Ctrl+c and then "a" to abort'
+
+- hosts: director
+  name: playbook to shutdown all overcloud hosts
+  gather_facts: false
+  remote_user: root
+  become_user: stack
+  vars:
+    autorelabel: false
+  tasks:
+  - name: get provisioning IPs for overcloud hosts
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack server list -c Networks --format value | cut -d = -f 2"
+    register: overcloud_host_prov_ips
+
+  - name: create file to force autorelabel on overcloud hosts
+    become: yes
+    become_user: stack
+    command: "ssh heat-admin@{{ item }} sudo touch /.autorelabel && echo 'done'"
+    with_items:
+      - "{{ overcloud_host_prov_ips.stdout_lines }}"
+    when: autorelabel
+
+  - name: poweroff overcloud hosts
+    become: yes
+    become_user: stack
+    command: ssh heat-admin@{{ item }} "sleep 2 && sudo /sbin/shutdown -c && sudo /sbin/shutdown -h now"
+    #command: "ssh heat-admin@{{ item }} sudo shutdown -h now"
+    with_items:
+      - "{{ overcloud_host_prov_ips.stdout_lines }}"
+    async: 1
+    poll: 0
+    ignore_errors: true
+
+  - name: waiting for overcloud hosts to poweroff
+    wait_for:
+      host: "{{ item }}"
+      state: stopped
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    become: false
+    ignore_errors: true
+    with_items:
+      - "{{ overcloud_host_prov_ips.stdout_lines }}"
+
+  - name: poweroff Undercloud
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
+
+  - name: waiting for Undercloud to poweroff
+    wait_for:
+      host: "{{ ansible_host }}"
+      state: stopped
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+- hosts: content
+  name: play to shutdown Content server
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: poweroff Content
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
+
+  - name: waiting for Content to poweroff
+    wait_for:
+      host: "{{ ansible_host }}"
+      state: stopped
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+- hosts: idm
+  name: play to shutdown IdM
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: poweroff IdM
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
+
+  - name: waiting for IdM to poweroff
+    wait_for:
+      host: "{{ ansible_host }}"
+      state: stopped
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+- hosts: kvm
+  name: play to shutdown KVM
+  gather_facts: false
+  remote_user: root
+  vars:
+    shutdown_kvm: false
+  tasks:
+  - name: poweroff KVM
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
+    when: shutdown_kvm
+
+  - name: waiting for KVM to poweroff
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: stopped
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+    when: shutdown_kvm

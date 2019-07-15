@@ -1,0 +1,164 @@
+---
+- hosts: kvm
+  name: play to turn on IDM and Undercloud
+  gather_facts: false
+  become: yes
+  tasks:
+  - name: start vms on kvm
+    shell: "virsh start {{ item }}"
+    ignore_errors: true
+    with_items:
+      - idm
+      - content
+      - director
+
+- hosts: idm
+  name: play to check on IdM
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: waiting for IdM to be online
+    wait_for:
+      host: "{{ ansible_host }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+
+- hosts: content
+  name: play to check on Content server
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: waiting for Content to be online
+    wait_for:
+      host: "{{ ansible_host }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+
+- hosts: director
+  name: playbook to startup all systems and services
+  gather_facts: false
+  remote_user: root
+  become_user: stack
+  tasks:
+  - name: waiting for Undercloud to be online
+    wait_for:
+      host: "{{ ansible_host }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+
+  - name: Pause playbook execution for 60 seconds
+    pause:
+      seconds: 60
+
+  - name: get ironic node names for overcloud hosts
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack baremetal node list -c Name --format value"
+    register: overcloud_host_node_names
+
+  - name: poweron overcloud hosts
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && ironic node-set-power-state {{ item }} on"
+    with_items:
+      - "{{ overcloud_host_node_names.stdout_lines }}"
+
+  - name: get provisioning IPs for overcloud hosts
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack server list -c Networks --format value | cut -d = -f 2"
+    register: overcloud_host_prov_ips
+
+  - name: waiting for overcloud hosts to poweron
+    wait_for:
+      host: "{{ item }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    become: false
+    ignore_errors: true
+    with_items:
+      - "{{ overcloud_host_prov_ips.stdout_lines }}"
+
+  - name: waiting for horizon to come online
+    wait_for:
+      host: "{{ overcloud_public_ip }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 80
+    delegate_to: 127.0.0.1
+    become: false
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
+  #due to weird issue on rhosp10 where patternfly doesn't load
+  - name: get provisioning IPs for overcloud controllers
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack server list -f value | grep controller | cut -d = -f 2 | cut -d ' ' -f 1"
+    register: overcloud_controller_prov_ips
+    when: versions.rhosp == 10
+
+  - name: restart httpd on controllers
+    become: yes
+    become_user: stack
+    shell: "ssh heat-admin@{{ item }} sudo systemctl restart httpd"
+    with_items:
+      - "{{ overcloud_controller_prov_ips.stdout_lines }}"
+    when: versions.rhosp == 10
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+    when: versions.rhosp == 10
+
+- hosts: localhost
+  name: play to start OpenStack instances
+  gather_facts: false
+  tasks:
+  - name: authenticate to the cloud and retrieve the service catalog
+    os_auth:
+      auth: "{{ general_os_auth | default(omit) }}"
+
+  - name: get list of openstack projects
+    os_project_facts:
+      auth: "{{ general_os_auth | default(omit) }}"
+
+  - name: get list of instances per project
+    os_server_facts:
+      auth: "{{ general_os_auth | default(omit) }}"
+    with_items:
+      - "{{ openstack_projects }}"
+    ignore_errors: true
+
+  - debug:
+      msg: "{{ openstack_projects }}"
+  - debug:
+      msg: "{{ openstack_servers }}"
+  
+  - name: start all instances in each project
+    os_server_action:
+      action: start
+      auth: "{{ general_os_auth | default(omit) }}"
+      server: "{{ item.name }}"
+      timeout: 200
+      wait: yes
+    with_items:
+      - "{{ openstack_servers }}"
+    ignore_errors: true

@@ -78,9 +78,3 @@
         name: director
         tasks_from: post_config
       tags: configure
-
-    - name: Register Overcloud Nodes
-      include_role:
-        name: director
-        tasks_from: register_overcloud_nodes
-      tags: register

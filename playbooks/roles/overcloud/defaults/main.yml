@@ -80,6 +80,7 @@ director_optional_docker_services:
   - /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml
 
 #RHOSP overcloud vars
+overcloud_nodes: []
 overcloud_timezone: "US/Eastern"
 overcloud_timeout: 120
 overcloud_cloud_name: openstack

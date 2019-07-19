@@ -1,6 +1,12 @@
 ---
 - hosts: director
   tasks:
+    - name: Register Overcloud Nodes
+      include_role:
+        name: overcloud
+        tasks_from: register_overcloud_nodes
+      tags: register
+
     - name: configure overcloud templates
       include_role:
         name: overcloud

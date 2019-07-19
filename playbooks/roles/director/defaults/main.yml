@@ -79,4 +79,3 @@ director_deploy_dhcp_end: []
 director_clean_nodes: true
 # Set admin password for undercloud
 director_admin_password: []
-director_overcloud_nodes: []

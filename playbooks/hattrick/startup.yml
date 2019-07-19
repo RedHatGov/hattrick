@@ -74,6 +74,7 @@
     shell: "source /home/stack/stackrc && ironic node-set-power-state {{ item }} on"
     with_items:
       - "{{ overcloud_host_node_names.stdout_lines }}"
+    delay: 5
 
   - name: get provisioning IPs for overcloud hosts
     become: yes

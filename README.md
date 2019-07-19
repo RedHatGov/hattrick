@@ -66,7 +66,7 @@ $ pip install pipenv --user
 ```
 $ cd hattrick/
 $ pipenv --python 3.7
-$ pipenv install
+$ export PYCURL_SSL_LIBRARY=openssl && pipenv install
 ```
 
 ## To deploy the initial RHEL+KVM admin host

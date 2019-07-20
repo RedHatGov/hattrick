@@ -1,0 +1,92 @@
+- name: create instackenv file
+  copy:
+    content: "{{ lookup('template', 'templates/instackenv.json.j2') | to_nice_json }}"
+    dest: "/home/stack/instackenv.json"
+  tags: register
+
+- name: ping check on IPMI IP
+  command: ping -c 2 -w 5 {{ item.pm_addr }}
+  register: ping_response
+  ignore_errors: true
+  with_items: "{{ overcloud_nodes }}"
+  tags: register
+
+- name: debug ping responses
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ ping_response.results }}"
+  tags: register
+
+- name: set validation errors for failed pings
+  set_fact:
+    validation_errors: "{{ overcloud_validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
+  when: "item.rc != 0"
+  with_items: "{{ ping_response.results }}"
+  tags: register
+
+- name: ensure ipmi boot network
+  ipmi_boot:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    bootdev: "{{ overcloud_bootdev|default('network') }}"
+    state: present
+  when: "item.pm_driver == 'pxe_ipmitool'"
+  register: ipmi_boot
+  with_items: "{{ overcloud_nodes }}"
+  ignore_errors: true
+  tags: register
+
+- name: set validation errors as needed for ipmi issues
+  set_fact:
+    validation_errors: "{{ overcloud_validation_errors }} + [ 'error checking ipmi on {{ item.item.pm_addr }} - please confirm credentials access and IPMI configuration ' ]"
+  when: "{{ item.failed|default('false')|bool }}"
+  with_items: "{{ ipmi_boot.results }}"
+  tags: register
+
+- name: debug validation errors
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ overcloud_validation_errors }}"
+  tags: register
+
+- name: poweroff all servers when poweroff == true
+  ipmi_power:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    state: off
+  with_items: "{{ overcloud_nodes }}"
+  when: "{{ overcloud_poweroff|bool }}"
+  ignore_errors: true
+  tags: register
+
+- name: check failure
+  fail:
+    msg: "\n - {{ overcloud_validation_errors|join('\n') }}"
+  when: validation_errors is defined and validation_errors|length > 0
+  tags: register
+
+- name: import introspect and provide nodes
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack overcloud node import --introspect --provide instackenv.json
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+  tags: register
+
+- name: set root devices for all nodes (default is /dev/sda)
+  become: yes
+  become_user: stack
+  shell: "source /home/stack/stackrc && openstack baremetal node set --property root_device='{\"name\": \"{{ item.root_device|default('/dev/sda')}}\"}' {{ item.name }}"
+  args:
+    chdir: /home/stack
+  with_items: "{{ overcloud_nodes }}"
+  tags: register
+
+- name: success
+  debug:
+    msg: ipmi completely validated
+  tags: register

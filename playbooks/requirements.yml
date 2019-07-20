@@ -3,6 +3,7 @@
 - src: RedHatGov.rhsm
 - src: RedHatGov.kvm
 - src: RedHatGov.kvm_vm
+- src: RedHatGov.rhv_vm
 - src: RedHatGov.idm
 - src: RedHatGov.content
-- src: RedHatGov.rhv_vm
+- src: RedHatGov.director

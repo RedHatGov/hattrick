@@ -81,6 +81,9 @@ director_optional_docker_services:
 
 #RHOSP overcloud vars
 overcloud_nodes: []
+overcloud_poweroff: true
+overcloud_bootdev: network
+overcloud_validation_errors: []
 overcloud_timezone: "US/Eastern"
 overcloud_timeout: 120
 overcloud_cloud_name: openstack

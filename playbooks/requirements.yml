@@ -7,3 +7,7 @@
 - src: RedHatGov.idm
 - src: RedHatGov.content
 - src: RedHatGov.director
+- src: RedHatGov.openstack_instance
+- src: RedHatGov.tower
+#from GitHub
+- src: https://github.com/RedHatOfficial/ansible-role-redhat_satellite6_installation.git

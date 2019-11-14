@@ -5,8 +5,11 @@
   - name: Provision Tower
     vars:
       os_auth: "{{ general_os_auth }}"
+      os_instance_image: rhel76
+      os_instance_flavor: m1.large
+      os_instance_key_name: "{{ tower_os_instance_key_name }}"
     include_role:
-      name: tower
+      name: RedHatGov.tower
       tasks_from: provision_openstack
     tags: provision
 
@@ -15,6 +18,7 @@
     tags: provision
 
 - hosts: tower
+  become: yes
   tasks:
   - name: Register to RHSM
     vars:
@@ -26,5 +30,5 @@
 
   - name: Install Tower
     include_role:
-      name: tower
+      name: RedHatGov.tower
     tags: install

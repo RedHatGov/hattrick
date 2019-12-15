@@ -5,7 +5,7 @@ domain: hattrick.lab
 dns_server_local: 192.168.0.4
 dns_server_public: 192.168.0.1
 ntp_server: time.google.com
-git_repo: https://github.com/redhat-kejones/ht
+git_repo: https://github.com/RedHatGov/hattrick
 
 versions:
   rhosp: 13
@@ -247,7 +247,7 @@ director_provisioning_network_gateway: "{{ networks.provisioning.gateway }}"
 director_inspection_dhcp_start: "{{ networks.provisioning.introspectionDhcpStart }}"
 director_inspection_dhcp_end: "{{ networks.provisioning.introspectionDhcpEnd }}"
 director_deploy_dhcp_start: "{{ networks.provisioning.deployDhcpStart }}"
-director_deploy_dhcp_end: "{{ networks.provisioning.deployDhcpStart }}"
+director_deploy_dhcp_end: "{{ networks.provisioning.deployDhcpEnd }}"
 director_admin_password: "redhat"
 director_overcloud_nodes:
   - name: node5

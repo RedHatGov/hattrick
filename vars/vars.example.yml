@@ -216,6 +216,12 @@ director_nics:
   - name: eth0
     bootproto: static
     onboot: yes
+    ip: "{{ networks.provisioning.gateway }}"
+    prefix: "{{ networks.provisioning.cidr | ipaddr('prefix') }}"
+    config: "--type bridge --source br2 --model virtio"
+  - name: eth1
+    bootproto: static
+    onboot: yes
     ip: "{{ director_public_ip }}"
     prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
     gateway: "{{ networks.external.gateway }}"

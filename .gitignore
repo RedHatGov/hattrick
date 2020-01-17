@@ -15,6 +15,7 @@ vars/*
 playbooks/roles/ansible-*
 playbooks/roles/redhatgov*
 playbooks/roles/RedHatGov*
+playbooks/roles/oasis_roles*
 
 ###############################################################################
 # Python

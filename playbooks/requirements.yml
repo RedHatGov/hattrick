@@ -1,6 +1,5 @@
 #from galaxy
 - src: RedHatGov.copy_local_pub_key
-- src: RedHatGov.rhsm
 - src: RedHatGov.kvm
 - src: RedHatGov.kvm_vm
 - src: RedHatGov.rhv_vm
@@ -9,5 +8,8 @@
 - src: RedHatGov.director
 - src: RedHatGov.openstack_instance
 - src: RedHatGov.tower
+- src: RedHatGov.rhsm
+- src: oasis_roles.rhsm
+- src: oasis_roles.openstack_provision
 #from GitHub
 - src: https://github.com/RedHatOfficial/ansible-role-redhat_satellite6_installation.git

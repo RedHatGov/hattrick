@@ -36,6 +36,10 @@
         sleep: 5
       tags: provision
 
+    - name: pause 30 seconds for boot
+      pause:
+        seconds: 30
+
 - hosts: idm
   become: true
   tasks:

@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  name: Play that sets up a linux system to host the hattrick repo for execution
+  tasks:
+    #NOTE: RHEL systems must be subscribed and have the following repos enabled
+    #      - rhel-7-server-rpms
+    #      - rhel-7-server-optional-beta-rpms (for python3-devel)
+
+    - name: install packages
+      yum:
+        name: tmux, python3-pip, git, gcc, libcurl-devel, libxml2-devel, openssl-devel, python3-devel
+        state: present
+
+    - name: install pipenv
+      pip:
+        name: pipenv
+        executable: pip3
+
+    - name: clone the repository
+      git:
+        repo: https://github.com/RedHatGov/hattrick.git
+        dest: hattrick
+
+    - name: make sure pipenv is in path
+      lineinfile:
+        path: .bash_profile
+        state: present
+        regexp: '^PATH='
+        line: 'PATH=$PATH:$HOME/.local/bin:$HOME/bin'
+
+    - name: run pipenv install to get all dependencies
+      shell: "export PYCURL_SSL_LIBRARY=openssl && pipenv install --three"
+      args:
+        chdir: hattrick/
+
+    - name: install the Ansible roles from galaxy
+      shell: "pipenv run ansible-galaxy install -r playbooks/requirements.yml"
+      args:
+        chdir: hattrick/

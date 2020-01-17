@@ -16,6 +16,7 @@
       pip:
         name: pipenv
         executable: pip3
+        extra_args: --user
 
     - name: clone the repository
       git:

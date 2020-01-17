@@ -1,41 +1,55 @@
 ---
-- hosts: localhost
-  name: Play that sets up a linux system to host the hattrick repo for execution
+- name: Play that sets up a linux system to host the hattrick repo for execution
+  hosts: localhost
   tasks:
     #NOTE: RHEL systems must be subscribed and have the following repos enabled
     #      - rhel-7-server-rpms
     #      - rhel-7-server-optional-beta-rpms (for python3-devel)
 
-    - name: install packages
+    - name: Install packages
       become: yes
       yum:
-        name: tmux, python3-pip, git, gcc, libcurl-devel, libxml2-devel, openssl-devel, python3-devel
+        name:
+          - tmux
+          - python3-pip
+          - git
+          - gcc
+          - libcurl-devel
+          - libxml2-devel
+          - openssl-devel
+          - python3-devel
         state: present
 
-    - name: install pipenv
+    - name: Install pipenv
       pip:
         name: pipenv
         executable: pip3
         extra_args: --user
 
-    - name: clone the repository
+    - name: Clone the repository
       git:
         repo: https://github.com/RedHatGov/hattrick.git
         dest: hattrick
 
-    - name: make sure pipenv is in path
+    - name: Make sure pipenv is in path
       lineinfile:
         path: .bash_profile
         state: present
         regexp: '^PATH='
         line: 'PATH=$PATH:$HOME/.local/bin:$HOME/bin'
 
-    - name: run pipenv install to get all dependencies
+    - name: Run pipenv install to get all dependencies
       shell: "export PYCURL_SSL_LIBRARY=openssl && pipenv install --three"
       args:
         chdir: hattrick/
 
-    - name: install the Ansible roles from galaxy
+    - name: Install the Ansible roles from galaxy
       shell: "pipenv run ansible-galaxy install -r playbooks/requirements.yml"
       args:
         chdir: hattrick/
+
+    - name: Copy vars example file
+      copy:
+        src: hattrick/vars/vars.example.yml
+        dest: hattrick/vars/vars.yml
+        remote_src: yes

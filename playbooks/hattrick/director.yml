@@ -68,13 +68,13 @@
 
     - name: Install Director
       include_role:
-        name: director
+        name: RedHatGov.director
       tags: install
 
     - name: Configure Director
       vars:
         disconnected: true
       include_role:
-        name: director
+        name: RedHatGov.director
         tasks_from: post_config
       tags: configure

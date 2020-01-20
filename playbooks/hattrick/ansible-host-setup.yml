@@ -1,12 +1,13 @@
 ---
-- name: Play that sets up a linux system to host the hattrick repo for execution
-  hosts: localhost
+- hosts: localhost
+  connection: local
+  name: Play that sets up a linux system to host the hattrick repo for execution
   tasks:
     #NOTE: RHEL systems must be subscribed and have the following repos enabled
     #      - rhel-7-server-rpms
     #      - rhel-7-server-optional-beta-rpms (for python3-devel)
 
-    - name: Install packages
+    - name: install packages
       become: yes
       yum:
         name:
@@ -20,31 +21,32 @@
           - python3-devel
         state: present
 
-    - name: Install pipenv
+    - name: install pipenv
       pip:
         name: pipenv
         executable: pip3
         extra_args: --user
 
-    - name: Clone the repository
+    - name: clone the repository
       git:
         repo: https://github.com/RedHatGov/hattrick.git
         dest: hattrick
+        force: yes
 
-    - name: Make sure pipenv is in path
+    - name: make sure pipenv is in path
       lineinfile:
         path: .bash_profile
         state: present
         regexp: '^PATH='
         line: 'PATH=$PATH:$HOME/.local/bin:$HOME/bin'
 
-    - name: Run pipenv install to get all dependencies
-      shell: "export PYCURL_SSL_LIBRARY=openssl && pipenv install --three"
+    - name: run pipenv install to get all dependencies
+      shell: "export PYCURL_SSL_LIBRARY=openssl && ~/.local/bin/pipenv install --three"
       args:
         chdir: hattrick/
 
-    - name: Install the Ansible roles from galaxy
-      shell: "pipenv run ansible-galaxy install -r playbooks/requirements.yml"
+    - name: install the Ansible roles from galaxy
+      shell: "~/.local/bin/pipenv run ansible-galaxy install -r playbooks/requirements.yml"
       args:
         chdir: hattrick/
 
@@ -53,3 +55,11 @@
         src: hattrick/vars/vars.example.yml
         dest: hattrick/vars/vars.yml
         remote_src: yes
+
+    - name: Need to source your .bash_profile to make pipenv available as a command
+      debug:
+        msg:
+         - "On RHEL 7, you need ~/.local/bin in your path to make the pipenv command available"
+         - "Run the following to add pipenv command to your path"
+         - "$ source .bash_profile"
+      when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "7"

@@ -9,7 +9,7 @@
 
     - name: install packages
       become: yes
-      yum:
+      package:
         name:
           - tmux
           - python3-pip

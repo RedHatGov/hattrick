@@ -23,6 +23,13 @@
           - python3-devel
         state: present
 
+    - name: install python36 on Fedora systems
+      become: yes
+      package:
+        name: python36
+        state: present
+      when: ansible_distribution == "Fedora"
+
     - name: install pipenv
       pip:
         name: pipenv
@@ -43,7 +50,7 @@
         line: 'PATH=$PATH:$HOME/.local/bin:$HOME/bin'
 
     - name: run pipenv install to get all dependencies
-      shell: "export PYCURL_SSL_LIBRARY=openssl && ~/.local/bin/pipenv install --three"
+      shell: "export PYCURL_SSL_LIBRARY=openssl && ~/.local/bin/pipenv install --python 3.6"
       args:
         chdir: hattrick/
 
@@ -58,8 +65,7 @@
         dest: hattrick/vars/vars.yml
         remote_src: yes
 
-    - name: Need to source your .bash_profile to make pipenv available as a command
-      debug:
+    - debug:
         msg:
          - "On RHEL 7, you need ~/.local/bin in your path to make the pipenv command available"
          - "Run the following to add pipenv command to your path"

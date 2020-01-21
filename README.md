@@ -21,7 +21,7 @@ You need to configure an Ansible host to execute these playbooks
 > - rhel-7-server-optional-rpms
 > - rhel-7-server-ansible-2.9-rpms
 
-You can do this manually, or you can use the provided playbook
+You can do this manually, or you can use the provided [playbook](https://raw.githubusercontent.com/RedHatGov/hattrick/master/playbooks/hattrick/ansible-host-setup.yml)
 
 ## Configure your Ansible host using the provided playbook
 

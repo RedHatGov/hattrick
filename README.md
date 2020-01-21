@@ -46,16 +46,21 @@ $ vi vars/vars.yml
 ```
 > NOTE: The vars example file only exposes the variables you must care about. If you need to dig deeper you'll have to dig into the roles.
 
-## To deploy the initial RHEL+KVM admin host
+## Enter pipenv shell
 
-1. Follow the [instructions to create a bootable custom ISO](https://github.com/RedHatGov/hattrick/tree/master/admin-iso) to install the base operating system for what will become the initial RHEL+KVM utility server
-2. Verify your networking is the way you expect. We recommend two bridges for the VMs. br1 for the external network and br2 for the provisioning network
-3. You must be in your pipenv shell to execute the playbooks
+Before you run any of the following playbooks, you need to enter the pipenv
+shell that was created for you during the ansible-host-setup playbook.
+
 ```
 $ cd hattrick/
 $ pipenv shell
 ```
-4. Run the kvm playbook from the ht directory
+
+## To deploy the initial RHEL+KVM admin host
+
+1. Follow the [instructions to create a bootable custom ISO](https://github.com/RedHatGov/hattrick/tree/master/admin-iso) to install the base operating system for what will become the initial RHEL+KVM utility server
+2. Verify your networking is the way you expect. We recommend two bridges for the VMs. br1 for the external network and br2 for the provisioning network
+3. Run the kvm playbook from the ht directory
 ```
 $ ansible-playbook -i inventory/inventory.yml -e @vars/vars.yml playbooks/hattrick/kvm.yml
 ```

@@ -6,7 +6,7 @@ The playbooks are setup in a way to be utilized in a standalone fashion for each
 
 Currently the provisioning of utility resources happens on a main RHEL+KVM host for deployment. After that either Red Hat OpenStack Platform or Red Hat Virtualization should be deployed. Once the chosen infrastructure is up and running, the remaining resources are provisioned on top. The provisioning mechanisms could be replaced with another infrastructure provider like VMware or Public Clouds.
 
-All *required* variables are in_vars/vars.example.yml. If you need to customize further, you'll have to dig into the roles to see all the available vars to override.
+All **required** variables are in vars/vars.example.yml. If you need to customize further, you'll have to dig into the roles to see all the available vars to override.
 
 We've attempted to make this setup very flexible. However, if you believe there is a better way, please contribute.
 

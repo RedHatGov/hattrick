@@ -168,7 +168,7 @@ content_nics:
     ip: "{{ content_public_ip }}"
     prefix: "{{ networks.external.cidr | ipaddr('prefix') }}"
     gateway: "{{ networks.external.gateway }}"
-    dns_server: "{{ dns_server_local }}"
+    dns_server: "{{ dns_server_public }}"
     config: "--type bridge --source br1 --model virtio"
 content_repos:
   - rhel-{{ ansible_distribution_major_version }}-server-rpms

@@ -3,11 +3,16 @@
   connection: local
   name: Play that sets up a linux system to host the hattrick repo for execution
   tasks:
-    #NOTE: RHEL systems must be subscribed and have the following repos enabled
+    #NOTE: RHEL 7 systems must be subscribed and have the following repos enabled
     #      - rhel-7-server-rpms
     #      - rhel-7-server-extras-rpms
     #      - rhel-7-server-optional-rpms
     #      - rhel-7-server-ansible-2.9-rpms
+    #
+    #      RHEL 8 systems must be subscribed and have the following repos enabled
+    #      - rhel-8-for-x86_64-baseos-rpms
+    #      - rhel-8-for-x86_64-appstream-rpms
+    #      - ansible-2.9-for-rhel-8-x86_64-rpms
 
     - name: install packages
       become: yes

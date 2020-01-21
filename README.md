@@ -20,6 +20,11 @@ You need to configure an Ansible host to execute these playbooks
 > - rhel-7-server-extras-rpms
 > - rhel-7-server-optional-rpms
 > - rhel-7-server-ansible-2.9-rpms
+>
+> For RHEL 8 machines, you need the following repos enabled
+> - rhel-8-for-x86_64-baseos-rpms
+> - rhel-8-for-x86_64-appstream-rpms
+> - ansible-2.9-for-rhel-8-x86_64-rpms
 
 You can do this manually, or you can use the provided [playbook](https://raw.githubusercontent.com/RedHatGov/hattrick/master/playbooks/hattrick/ansible-host-setup.yml)
 

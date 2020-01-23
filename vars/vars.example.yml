@@ -119,7 +119,9 @@ idm_realm: "{{ domain | upper }}"
 idm_dm_pwd: "p@ssw0rd"
 idm_admin_pwd: "p@ssw0rd"
 idm_forward_ip: "{{ dns_server_public }}"
-idm_reverse_zone: "168.192.in-addr.arpa."
+idm_auto_reverse: false
+idm_reverse_zones:
+  - 168.192.in-addr.arpa.
 idm_users:
   - username: operator
     password: p@ssw0rd
@@ -133,12 +135,12 @@ idm_dns_records:
   - hostname: wwan
     record_type: A
     ip_address: 192.168.0.1
-    reverse_zone: "{{ idm_reverse_zone }}"
+    reverse_zone: "{{ idm_reverse_zones[0] }}"
     reverse_record: 1.0
   - hostname: switch
     record_type: A
     ip_address: 192.168.0.2
-    reverse_zone: "{{ idm_reverse_zone }}"
+    reverse_zone: "{{ idm_reverse_zones[0] }}"
     reverse_record: 2.0
   - hostname: kvm
     record_type: A
@@ -147,12 +149,12 @@ idm_dns_records:
   - hostname: undercloud
     record_type: A
     ip_address: 192.168.0.5
-    reverse_zone: "{{ idm_reverse_zone }}"
+    reverse_zone: "{{ idm_reverse_zones[0] }}"
     reverse_record: 5.0
   - hostname: openstack
     record_type: A
     ip_address: 192.168.1.40
-    reverse_zone: "{{ idm_reverse_zone }}"
+    reverse_zone: "{{ idm_reverse_zones[0] }}"
     reverse_record: 40.1
 
 #Content Server (Repos, Registry, NFS)

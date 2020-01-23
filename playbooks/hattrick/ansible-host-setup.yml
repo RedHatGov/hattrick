@@ -13,6 +13,9 @@
     #      - rhel-8-for-x86_64-baseos-rpms
     #      - rhel-8-for-x86_64-appstream-rpms
     #      - ansible-2.9-for-rhel-8-x86_64-rpms
+    #
+    #      CentOS 7 is not supported currenlty because there is no
+    #      libselinux-python3 package available
 
     - name: install packages
       become: yes
@@ -27,6 +30,13 @@
           - openssl-devel
           - python3-devel
         state: present
+
+    - name: install libselinux-python3 on RHEL 7
+      yum:
+        name: libselinux-python3
+        enablerepo: rhel-7-server-beta-rpms
+        state: present
+      when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "7"
 
     - name: install python36 on Fedora systems
       become: yes

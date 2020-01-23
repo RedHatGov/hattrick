@@ -133,10 +133,12 @@ idm_dns_records:
   - hostname: wwan
     record_type: A
     ip_address: 192.168.0.1
+    reverse_zone: "{{ idm_reverse_zone }}"
     reverse_record: 1.0
   - hostname: switch
     record_type: A
     ip_address: 192.168.0.2
+    reverse_zone: "{{ idm_reverse_zone }}"
     reverse_record: 2.0
   - hostname: kvm
     record_type: A
@@ -145,10 +147,12 @@ idm_dns_records:
   - hostname: undercloud
     record_type: A
     ip_address: 192.168.0.5
+    reverse_zone: "{{ idm_reverse_zone }}"
     reverse_record: 5.0
   - hostname: openstack
     record_type: A
     ip_address: 192.168.1.40
+    reverse_zone: "{{ idm_reverse_zone }}"
     reverse_record: 40.1
 
 #Content Server (Repos, Registry, NFS)

@@ -77,9 +77,3 @@
       include_role:
         name: RedHatGov.idm
       tags: install
-
-    - name: Configure IDM
-      include_role:
-        name: RedHatGov.idm
-        tasks_from: configure
-      tags: configure

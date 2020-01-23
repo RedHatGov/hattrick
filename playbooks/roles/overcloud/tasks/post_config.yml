@@ -7,6 +7,14 @@
     mode: 0775
   tags: post-overcloud
 
+- debug:
+    var: overcloud_guest_images
+
+- name: prompt user to make sure guest images are in place
+  pause:
+    prompt:
+      'Please make sure that guest images defined in your vars.yml (above) are in hattrick/guest_images/ on your Ansible host. Press return to continue. Press Ctrl+c and then "a" to abort'
+
 - name: copy guest_images to Undercloud
   copy:
     src: guest_images/

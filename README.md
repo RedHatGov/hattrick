@@ -26,6 +26,11 @@ You need to configure an Ansible host to execute these playbooks
 > - rhel-8-for-x86_64-appstream-rpms
 > - ansible-2.9-for-rhel-8-x86_64-rpms
 
+> NOTE: CentOS 7 is not currently supported as the Ansible host because we are
+> using python 3.6 and CentOS 7 does not currently have an rpm available for
+> libselinux-python3. Because RHEL 7.7 has this package in beta, we expect
+> CentOS will have this package available in the near future.
+
 You can do this manually, or you can use the provided [playbook](https://raw.githubusercontent.com/RedHatGov/hattrick/master/playbooks/hattrick/ansible-host-setup.yml)
 
 ## Configure your Ansible host using the provided playbook

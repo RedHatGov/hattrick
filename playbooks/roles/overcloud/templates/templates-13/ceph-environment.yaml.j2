@@ -11,8 +11,7 @@ parameter_defaults:
     osd_recovery_op_priority: 2
     osd_recovery_max_active: 2
     osd_max_backfills: 1
-    ### Added because of https://bugzilla.redhat.com/show_bug.cgi?id=1477348
-    osd_mkfs_options_xfs: '-f -d agcount=24'
+    rgw_swift_account_in_url: true
   CephPools:
     - name: volumes
       pg_num: 512
@@ -42,10 +41,5 @@ parameter_defaults:
       - /dev/sdb
       - /dev/sdc
       - /dev/sdd
-    osd_scenario: collocated
-
-#    osd_scenario: non-collocated
-#    dedicated_devices:
-#      - /dev/nvme0n1
-#      - /dev/nvme0n1
-#      - /dev/nvme0n1
+    osd_scenario: lvm
+    osd_objectstore: bluestore

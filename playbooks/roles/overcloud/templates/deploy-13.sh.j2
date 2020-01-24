@@ -6,9 +6,6 @@ source ~/stackrc
 #Disable Telemetry
 #  -e /usr/share/openstack-tripleo-heat-templates/environments/disable-telemetry.yaml
 
-#Enable nested Virt on Hypervisors
-#  -e /home/stack/templates/nested-virt-post-deploy.yaml \
-
 time openstack overcloud deploy --templates \
   -r /home/stack/templates/roles_data.yaml \
   -n /home/stack/templates/network_data.yaml \
@@ -25,5 +22,4 @@ time openstack overcloud deploy --templates \
   -e /home/stack/templates/network-environment.yaml \
   -e /home/stack/templates/ceph-environment.yaml \
   -e /home/stack/templates/firstboot-environment.yaml \
-  -e /home/stack/templates/octavia-post-deploy.yaml \
   --timeout {{ overcloud_timeout }}

@@ -11,6 +11,7 @@ parameter_defaults:
   BarbicanSimpleCryptoGlobalDefault: true
   CeilometerStoreEvents: true
   CephAnsiblePlaybookVerbosity: 0
+  NeutronDhcpAgentDnsmasqDnsServers: ['{{ dns_server_local }}']
   ExtraConfig:
     nova::compute::reserved_host_memory: 4096
     nova::cpu_allocation_ratio: 0

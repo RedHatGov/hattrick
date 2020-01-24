@@ -212,7 +212,7 @@ content_rh_registry_token: "...."
 director_hostname: director #Short hostname
 director_ssh_user: root
 director_ssh_pwd: p@ssw0rd
-director_public_ip: "192.168.0.5"
+director_public_ip: 192.168.0.5
 director_base_img: rhel-guest-image-7.qcow2
 director_vcpus: 4
 director_ram: 16384
@@ -254,6 +254,7 @@ director_optional_docker_services:
 # All variables for undercloud.conf
 director_provisioning_ip: 192.168.2.5/24 #NOTE: prefix at end
 director_admin_apis_vip: 192.168.2.6
+director_provisioning_interface_mtu: 1550 #NOTE: only needed for hattrick gear
 director_provisioning_network_cidr: "{{ networks.provisioning.cidr }}"
 director_provisioning_network_gateway: "{{ networks.provisioning.gateway }}"
 director_inspection_dhcp_start: "{{ networks.provisioning.introspectionDhcpStart }}"
@@ -302,20 +303,12 @@ overcloud_guest_images:
     min_disk: 10
     min_ram: 64
     qcow_loc: guest_images/cirros-0.4.0-x86_64-disk.img
-  - name: rhel75
-    min_disk: 10
-    min_ram: 1024
-    qcow_loc: guest_images/rhel-server-7.5-x86_64-kvm.qcow2
-  - name: cf47
-    min_disk: 40
-    min_ram: 12288
-    qcow_loc: guest_images/cfme-rhos-5.9.7.2-1.x86_64.qcow2
 
 os_auth:
-  auth_url: http://openstack.example.com:5000
-  username: admin
+  auth_url: "http://{{ overcloud_public_ip }}:5000"
+  username: operator
   password: p@ssw0rd
-  project_name: myproject
+  project_name: operators
 
 tower_hostname: tower
 tower_public_ip: 192.168.1.80
@@ -324,11 +317,3 @@ tower_repos:
   - rhel-7-server-rpms
   - rhel-7-server-extras-rpms
   - rhel-7-server-ansible-2.7-rpms
-
-os_auth_openshift:
-  auth_url: "{{ os_auth.auth_url }}"
-  username: "{{ os_auth.username }}"
-  password: "{{ os_auth.password }}"
-  project_name: openshift
-
-openshift_provision: openstack

@@ -74,7 +74,6 @@ director_optional_docker_services:
   - /usr/share/openstack-tripleo-heat-templates/environments/services/barbican.yaml
   - /usr/share/openstack-tripleo-heat-templates/environments/barbican-backend-simple-crypto.yaml
   - /usr/share/openstack-tripleo-heat-templates/environments/services/octavia.yaml
-  - /usr/share/openstack-tripleo-heat-templates/environments/services/sahara.yaml
   - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
   - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-rgw.yaml
   - /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml

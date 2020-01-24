@@ -262,7 +262,12 @@ director_inspection_dhcp_end: "{{ networks.provisioning.introspectionDhcpEnd }}"
 director_deploy_dhcp_start: "{{ networks.provisioning.deployDhcpStart }}"
 director_deploy_dhcp_end: "{{ networks.provisioning.deployDhcpEnd }}"
 director_admin_password: "redhat"
-director_overcloud_nodes:
+
+overcloud_public_ip: 192.168.1.40
+overcloud_admin_pwd: p@ssw0rd
+overcloud_user: operator
+overcloud_pwd: p@ssw0rd
+overcloud_nodes:
   - name: node5
     profile: control
     pm_addr: "192.168.2.205"
@@ -291,11 +296,6 @@ director_overcloud_nodes:
     pm_pwd: "admin"
     pm_driver: "pxe_ipmitool"
     root_device: "/dev/nvme0n1"
-
-overcloud_public_ip: 192.168.1.40
-overcloud_admin_pwd: p@ssw0rd
-overcloud_user: operator
-overcloud_pwd: p@ssw0rd
 overcloud_ceph_disk_layout: ""
 overcloud_operator_pub_key: "ssh-rsa ..."
 overcloud_guest_images:

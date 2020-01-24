@@ -1,7 +1,7 @@
 {
   "arch": "x86_64",
   "nodes": [
-    {% for node in director_overcloud_nodes %}
+    {% for node in overcloud_nodes %}
     {
       "name": "{{ node.name }}",
       "pm_addr": "{{ node.pm_addr }}",

@@ -2,27 +2,27 @@
   copy:
     content: "{{ lookup('template', 'templates/instackenv.json.j2') | to_nice_json }}"
     dest: "/home/stack/instackenv.json"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: ping check on IPMI IP
   command: ping -c 2 -w 5 {{ item.pm_addr }}
   register: ping_response
   ignore_errors: true
   with_items: "{{ overcloud_nodes }}"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: debug ping responses
   debug:
     msg: "{{ item }}"
   with_items: "{{ ping_response.results }}"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: set validation errors for failed pings
   set_fact:
     validation_errors: "{{ overcloud_validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
   when: "item.rc != 0"
   with_items: "{{ ping_response.results }}"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: ensure ipmi boot network
   ipmi_boot:
@@ -35,20 +35,20 @@
   register: ipmi_boot
   with_items: "{{ overcloud_nodes }}"
   ignore_errors: true
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: set validation errors as needed for ipmi issues
   set_fact:
     validation_errors: "{{ overcloud_validation_errors }} + [ 'error checking ipmi on {{ item.item.pm_addr }} - please confirm credentials access and IPMI configuration ' ]"
   when: "{{ item.failed|default('false')|bool }}"
   with_items: "{{ ipmi_boot.results }}"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: debug validation errors
   debug:
     msg: "{{ item }}"
   with_items: "{{ overcloud_validation_errors }}"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: poweroff all servers when poweroff == true
   ipmi_power:
@@ -59,13 +59,13 @@
   with_items: "{{ overcloud_nodes }}"
   when: "{{ overcloud_poweroff|bool }}"
   ignore_errors: true
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: check failure
   fail:
     msg: "\n - {{ overcloud_validation_errors|join('\n') }}"
   when: validation_errors is defined and validation_errors|length > 0
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: import introspect and provide nodes
   become: yes
@@ -75,7 +75,7 @@
     chdir: /home/stack
   async: 2700
   poll: 30
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: set root devices for all nodes (default is /dev/sda)
   become: yes
@@ -84,9 +84,9 @@
   args:
     chdir: /home/stack
   with_items: "{{ overcloud_nodes }}"
-  tags: register
+  tags: register-overcloud-nodes
 
 - name: success
   debug:
     msg: ipmi completely validated
-  tags: register
+  tags: register-overcloud-nodes

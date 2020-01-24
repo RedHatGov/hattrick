@@ -5,7 +5,7 @@
       include_role:
         name: overcloud
         tasks_from: register_overcloud_nodes
-      tags: register
+      tags: register-overcloud-nodes
 
     - name: configure overcloud templates
       include_role:

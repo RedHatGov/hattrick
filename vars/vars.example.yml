@@ -267,6 +267,8 @@ overcloud_public_ip: 192.168.1.40
 overcloud_admin_pwd: p@ssw0rd
 overcloud_user: operator
 overcloud_pwd: p@ssw0rd
+overcloud_controller_scale: 3
+overcloud_compute_scale: 1
 overcloud_nodes:
   - name: node5
     profile: control
@@ -276,7 +278,7 @@ overcloud_nodes:
     pm_driver: "pxe_ipmitool"
     root_device: "/dev/nvme0n1"
   - name: node6
-    profile: compute
+    profile: control
     pm_addr: "192.168.2.206"
     pm_user: "admin"
     pm_pwd: "admin"
@@ -290,7 +292,7 @@ overcloud_nodes:
     pm_driver: "pxe_ipmitool"
     root_device: "/dev/nvme0n1"
   - name: node8
-    profile: control
+    profile: compute
     pm_addr: "192.168.2.208"
     pm_user: "admin"
     pm_pwd: "admin"

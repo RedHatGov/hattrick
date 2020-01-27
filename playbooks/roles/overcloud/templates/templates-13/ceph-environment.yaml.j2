@@ -37,9 +37,9 @@ parameter_defaults:
   CephAnsibleDisksConfig:
     dmcrypt: false
     devices:
-      - /dev/sda
-      - /dev/sdb
-      - /dev/sdc
-      - /dev/sdd
+      - /dev/disk/by-path/pci-0000:00:1f.2-ata-1.0
+      - /dev/disk/by-path/pci-0000:00:1f.2-ata-2.0
+      - /dev/disk/by-path/pci-0000:00:1f.2-ata-3.0
+      - /dev/disk/by-path/pci-0000:00:1f.2-ata-4.0
     osd_scenario: lvm
     osd_objectstore: bluestore

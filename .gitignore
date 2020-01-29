@@ -12,6 +12,8 @@ vars/*
 *.pub
 *ifcfg*
 *.tgz
+*.qcow2
+*.img
 playbooks/roles/ansible-*
 playbooks/roles/redhatgov*
 playbooks/roles/RedHatGov*

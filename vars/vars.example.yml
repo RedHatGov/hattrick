@@ -315,7 +315,9 @@ os_auth:
 tower_hostname: tower
 tower_public_ip: 192.168.1.80
 tower_pwd: p@ssw0rd
+tower_os_instance_image_name: rhel77
+tower_os_instance_key_name: hattrick_user
 tower_repos:
   - rhel-7-server-rpms
   - rhel-7-server-extras-rpms
-  - rhel-7-server-ansible-2.7-rpms
+  - rhel-7-server-ansible-2.9-rpms

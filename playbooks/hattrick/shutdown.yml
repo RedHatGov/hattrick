@@ -11,22 +11,22 @@
 
   - name: authenticate to the cloud and retrieve the service catalog
     os_auth:
-      auth: "{{ general_os_auth | default(omit) }}"
+      auth: "{{ os_auth | default(omit) }}"
 
   - name: get list of openstack projects
     os_project_facts:
-      auth: "{{ general_os_auth | default(omit) }}"
+      auth: "{{ os_auth | default(omit) }}"
 
   - name: get list of instances per project
     os_server_facts:
-      auth: "{{ general_os_auth | default(omit) }}"
+      auth: "{{ os_auth | default(omit) }}"
     with_items:
       - "{{ openstack_projects }}"
 
   - name: stop all instances in each project
     os_server_action:
       action: stop
-      auth: "{{ general_os_auth | default(omit) }}"
+      auth: "{{ os_auth | default(omit) }}"
       server: "{{ item.name }}"
       timeout: 200
     with_items:

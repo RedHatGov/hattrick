@@ -15,15 +15,15 @@
   tasks:
   - name: get list of openstack projects
     os_project_facts:
-      auth: "{{ general_os_auth }}"
+      auth: "{{ os_auth }}"
 
   - debug:
       msg: "{{ openstack_projects }}"
 
-  - name: grant admin role on each project to {{ general_os_auth.username }}
+  - name: grant admin role on each project to {{ os_auth.username }}
     os_user_role:
-      auth: "{{ general_os_auth }}"
-      user: "{{ general_os_auth.username }}"
+      auth: "{{ os_auth }}"
+      user: "{{ os_auth.username }}"
       role: admin
       project: "{{ project.name }}"
     when: project.name is search("project")
@@ -33,7 +33,7 @@
 
   - name: Update quotas
     os_quota:
-      auth: "{{ general_os_auth }}"
+      auth: "{{ os_auth }}"
       name: "{{ project.name }}"
       security_group_rule: 400
       security_group: 20
@@ -45,9 +45,9 @@
   - name: Create a private-a network in each project
     os_network:
       auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -61,9 +61,9 @@
   - name: Create private-a subnet in each project
     os_subnet:
       auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -81,9 +81,9 @@
   - name: Create a private-b network in each project
     os_network:
       auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -97,9 +97,9 @@
   - name: Create private-b subnet in each project
     os_subnet:
       auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -116,7 +116,7 @@
 
   - name: Create a router and attach both private-a and private-b networks
     os_router:
-      auth: "{{ general_os_auth }}"
+      auth: "{{ os_auth }}"
       state: present
       name: router-{{ project.name }}
       network: public
@@ -134,9 +134,9 @@
     tags: provision
     os_keypair:
       auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -151,9 +151,9 @@
   - name: Create RHEL 7.6 heat stack on private-a network
     vars:
       os_auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -175,9 +175,9 @@
   - name: Create RHEL 7.6 heat stack on private-b network
     vars:
       os_auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -199,9 +199,9 @@
   - name: Create CentOS 7 heat stack on private-a network
     vars:
       os_auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -223,9 +223,9 @@
   - name: Create CentOS 7 heat stack on private-b network
     vars:
       os_auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -247,9 +247,9 @@
   - name: Create Win Server 2012r2 heat stack on private-a network
     vars:
       os_auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -271,9 +271,9 @@
   - name: Create Win Server 2012r2 heat stack on private-b network
     vars:
       os_auth:
-        auth_url: "{{ general_os_auth.auth_url }}"
-        username: "{{ general_os_auth.username }}"
-        password: "{{ general_os_auth.password }}"
+        auth_url: "{{ os_auth.auth_url }}"
+        username: "{{ os_auth.username }}"
+        password: "{{ os_auth.password }}"
         project_name: "{{ project.name }}"
         project_domain_name: default
         user_domain_name: default
@@ -296,9 +296,9 @@
 #    tags: provision
 #    vars:
 #      os_auth:
-#        auth_url: "{{ general_os_auth.auth_url }}"
-#        username: "{{ general_os_auth.username }}"
-#        password: "{{ general_os_auth.password }}"
+#        auth_url: "{{ os_auth.auth_url }}"
+#        username: "{{ os_auth.username }}"
+#        password: "{{ os_auth.password }}"
 #        project_name: "{{ item[0].name }}"
 #        project_domain_name: default
 #        user_domain_name: default
@@ -341,9 +341,9 @@
 #      name: openstack_instance
 #    vars:
 #      os_auth:
-#        auth_url: "{{ general_os_auth.auth_url }}"
-#        username: "{{ general_os_auth.username }}"
-#        password: "{{ general_os_auth.password }}"
+#        auth_url: "{{ os_auth.auth_url }}"
+#        username: "{{ os_auth.username }}"
+#        password: "{{ os_auth.password }}"
 #        project_name: "{{ project.name }}"
 #        project_domain_name: default
 #        user_domain_name: default

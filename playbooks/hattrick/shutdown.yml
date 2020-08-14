@@ -63,8 +63,7 @@
   - name: poweroff overcloud hosts
     become: yes
     become_user: stack
-    command: ssh heat-admin@{{ item }} "sleep 2 && sudo /sbin/shutdown -c && sudo /sbin/shutdown -h now"
-    #command: "ssh heat-admin@{{ item }} sudo shutdown -h now"
+    shell: ssh heat-admin@{{ item }} sudo poweroff
     with_items:
       - "{{ overcloud_host_prov_ips.stdout_lines }}"
     async: 1

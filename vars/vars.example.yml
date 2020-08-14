@@ -311,6 +311,8 @@ os_auth:
   username: operator
   password: p@ssw0rd
   project_name: operators
+  project_domain_name: default
+  user_domain_name: default
 
 tower_hostname: tower
 tower_public_ip: 192.168.1.80
